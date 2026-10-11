@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-09 01:55'
-updated_date: '2026-10-11 14:57'
+updated_date: '2026-10-11 15:35'
 labels: []
 milestone: m-0
 dependencies:
@@ -32,10 +32,10 @@ languages-ng still keeps its own dev-docs/issues/ tracker (53 issues, frontmatte
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Legacy issues converted at offset +500 per the languages-ng migration spec: completed/ 42, tasks/ 10, drafts/ 1; verify.py, backlog doctor, and bin/check.py are clean
-- [ ] #2 The issues copied into plcc-ng by hand become Done + wontdo with project plcc-ng and a final summary naming the plcc-ng CR: 003->CR-162, 004->CR-163, 006->CR-164, 010->CR-174, 022->CR-185, 036->CR-186, 037->CR-187, 038->CR-188
-- [ ] #3 Open issues 020, 043, 050, 051, 053 become Done + wontdo as obsolete; 046 is In Progress; 042 is a draft; the other open issues are To Do; every N>53 bare #N reference has a triage decision
-- [ ] #4 languages-ng's devcontainer, AGENTS.md, and CONTRIBUTING.md follow plcc-ng's layout: the devcontainer clones and mounts ../dev at /workspaces/dev with BACKLOG_CWD set and mounts a languages-ng-claude volume at ~/.claude, AGENTS.md imports ../dev/ORG-AGENTS.md, ../dev/CONTRIBUTING.md, then CONTRIBUTING.md, and CONTRIBUTING.md opens with the link to the org developer guide; its old tracker is removed and grep finds no dev-docs/issues reference outside .git and the frozen dev-docs/plans/, dev-docs/specs/, and dev-docs/reviews/
+- [x] #1 Legacy issues converted at offset +500 per the languages-ng migration spec: completed/ 42, tasks/ 10, drafts/ 1; verify.py, backlog doctor, and bin/check.py are clean
+- [x] #2 The issues copied into plcc-ng by hand become Done + wontdo with project plcc-ng and a final summary naming the plcc-ng CR: 003->CR-162, 004->CR-163, 006->CR-164, 010->CR-174, 022->CR-185, 036->CR-186, 037->CR-187, 038->CR-188
+- [x] #3 Open issues 020, 043, 050, 051, 053 become Done + wontdo as obsolete; 046 is In Progress; 042 is a draft; the other open issues are To Do; every N>53 bare #N reference has a triage decision
+- [x] #4 languages-ng's devcontainer, AGENTS.md, and CONTRIBUTING.md follow plcc-ng's layout: the devcontainer clones and mounts ../dev at /workspaces/dev with BACKLOG_CWD set and mounts a languages-ng-claude volume at ~/.claude, AGENTS.md imports ../dev/ORG-AGENTS.md, ../dev/CONTRIBUTING.md, then CONTRIBUTING.md, and CONTRIBUTING.md opens with the link to the org developer guide; its old tracker is removed and grep finds no dev-docs/issues reference outside .git and the frozen dev-docs/plans/, dev-docs/specs/, and dev-docs/reviews/
 <!-- AC:END -->
 
 ## Implementation Notes
