@@ -1,11 +1,13 @@
 """Render Backlog.md task files from legacy issues."""
 import re
+from pathlib import Path
 
 CORE_TYPES = ("fix", "feat", "docs", "test", "refactor", "chore")
 TYPE_MAP = {"bug": "fix", "enhancement": "feat", "feature": "feat", "perf": "fix",
             **{t: t for t in CORE_TYPES}}
 WONTDO_RE = re.compile(r"^(abandoned|superseded)\b", re.IGNORECASE)
 HEADING_RE = re.compile(r"^#{1,5} ")
+TYPE_LINE_RE = re.compile(r"^type: (\S+)$", re.MULTILINE)
 
 
 def yaml_quote(s):
@@ -68,3 +70,12 @@ def render_task(*, task_id, title, status, created, labels, description,
     if final_summary:
         text += "\n" + _section("Final Summary", "FINAL_SUMMARY", final_summary.strip())
     return text
+
+
+def tracker_type(backlog, cr):
+    """The type of CR-<cr> in the tracker, or None if the tracker has no such CR."""
+    for folder in ("tasks", "completed"):
+        for path in (Path(backlog) / folder).glob(f"cr-{cr} - *.md"):
+            found = TYPE_LINE_RE.search(path.read_text(encoding="utf-8"))
+            return found.group(1) if found else None
+    return None

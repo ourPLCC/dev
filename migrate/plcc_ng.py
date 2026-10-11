@@ -1,29 +1,53 @@
 """Convert plcc-ng's legacy dev-docs/issues/ tracker into Backlog.md files.
 
 Usage: python3 -m migrate.plcc_ng --repo PLCC_NG --tracker ISSUES --triage FILE --report OUT
+
+plcc-ng-demo's tracker has the same format; migrate.plcc_ng_demo runs this
+converter with its own Profile.
 """
 import argparse
 import json
 import posixpath
 import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 from migrate.emit import (CORE_TYPES, TYPE_MAP, WONTDO_RE, assemble_description, filename_for,
-                          render_task)
+                          render_task, tracker_type)
 from migrate.legacy import parse_issue
 from migrate.links import IssueRef, LinkContext, rewrite_issue_body
 
-PROJECT = "plcc-ng"
 OFFSET = 0
 DUP_OFFSET = 400
 DUP_RANGE = range(400, 500)
-OTHER_OFFSETS = {"languages-ng": 500, "plcc-ng-demo": 800}
-GITHUB = "https://github.com/ourPLCC/plcc-ng"
-PROVENANCE_PREFIX = f"Migrated from {PROJECT} #"
-PROVENANCE_END_RE = re.compile(
-    rf"^{re.escape(PROVENANCE_PREFIX)}\d+\.\n<!-- SECTION:DESCRIPTION:END -->$", re.MULTILINE)
 FOLDERS = ("tasks", "completed", "drafts")
+TRIAGE_TABLES = ("open", "type_overrides", "duplicates")
+UPSTREAM = "plcc-ng"
+
+
+@dataclass(frozen=True)
+class Profile:
+    """What differs between repos whose trackers use plcc-ng's format."""
+    project: str
+    offset: int
+    dup_offset: int
+    dup_range: range
+    other_offsets: dict
+    github: str
+
+    @property
+    def provenance_prefix(self):
+        return f"Migrated from {self.project} #"
+
+    @property
+    def provenance_end_re(self):
+        return re.compile(rf"^{re.escape(self.provenance_prefix)}\d+\.\n"
+                          r"<!-- SECTION:DESCRIPTION:END -->$", re.MULTILINE)
+
+
+PLCC_NG = Profile("plcc-ng", OFFSET, DUP_OFFSET, DUP_RANGE,
+                  {"languages-ng": 500, "plcc-ng-demo": 800}, "https://github.com/ourPLCC/plcc-ng")
 
 
 def load_issues(repo_root):
@@ -61,8 +85,12 @@ def build_refs(issues, ids):
     return refs
 
 
-def issue_refs(issues):
-    return build_refs(issues, assign_ids(issues)[0])
+def _ids(issues, profile):
+    return assign_ids(issues, profile.offset, profile.dup_offset, profile.dup_range)
+
+
+def issue_refs(issues, profile=PLCC_NG):
+    return build_refs(issues, _ids(issues, profile)[0])
 
 
 def _stem(issue):
@@ -82,7 +110,7 @@ def _triage_entry(table, issue, duplicated):
 
 
 def _placement(issue, triage, duplicated):
-    if issue.closed:
+    if issue.closed or _triage_entry(triage.get("duplicates", {}), issue, duplicated):
         return "completed"
     entry = _triage_entry(triage["open"], issue, duplicated)
     return "drafts" if entry["as"] == "draft" else "tasks"
@@ -96,17 +124,30 @@ def expected_counts(issues, triage):
     return counts
 
 
-def _validate(issues, triage):
-    errors = []
+def _validate(issues, triage, backlog):
+    """Return {rel_path: type} for the upstream duplicates; exit listing every problem instead."""
+    errors, dup_types = [], {}
     duplicated = _duplicated(issues)
     open_triage = triage.get("open", {})
     overrides = triage.get("type_overrides", {})
-    for name, table in (("open", open_triage), ("type_overrides", overrides)):
+    upstream = triage.get("duplicates", {})
+    known = {str(i.number) for i in issues} | {_stem(i) for i in issues}
+    for key in upstream:
+        if key not in known:
+            errors.append(f"duplicates key {key!r} is not a legacy issue number or file stem")
+    for name in TRIAGE_TABLES:
+        table = triage.get(name, {})
         for number in sorted(duplicated):
             if str(number) in table:
                 stems = ", ".join(_stem(i) for i in issues if i.number == number)
                 errors.append(f"{name} key {str(number)!r} is ambiguous; key by file stem ({stems})")
     for issue in issues:
+        cr = _triage_entry(upstream, issue, duplicated)
+        if cr:
+            dup_types[issue.rel_path] = tracker_type(backlog, cr)
+            if dup_types[issue.rel_path] is None:
+                errors.append(f"#{issue.number:03d} duplicates CR-{cr}, which the tracker does not have")
+            continue
         if not issue.closed:
             entry = _triage_entry(open_triage, issue, duplicated)
             if not entry or entry.get("as") not in ("cr", "draft"):
@@ -116,38 +157,46 @@ def _validate(issues, triage):
             errors.append(f"#{issue.number:03d} has type {issue.type!r}; add a type_overrides entry")
     if errors:
         raise SystemExit("cannot convert:\n  " + "\n  ".join(errors))
+    return dup_types
 
 
-def is_migrated(path):
+def is_migrated(path, profile=PLCC_NG):
     """True if the file's description ends with this migration's provenance line."""
-    return PROVENANCE_END_RE.search(path.read_text(encoding="utf-8")) is not None
+    return profile.provenance_end_re.search(path.read_text(encoding="utf-8")) is not None
 
 
-def _remove_previous(backlog):
+def _remove_previous(backlog, profile):
     for folder in FOLDERS:
         for path in (backlog / folder).glob("*.md"):
-            if is_migrated(path):
+            if is_migrated(path, profile):
                 path.unlink()
 
 
-def convert(repo_root, tracker_root, triage):
+def convert(repo_root, tracker_root, triage, profile=PLCC_NG):
     repo_root, backlog = Path(repo_root), Path(tracker_root) / "backlog"
     issues = load_issues(repo_root)
-    _validate(issues, triage)
-    ids, remaps = assign_ids(issues)
+    dup_types = _validate(issues, triage, backlog)
+    ids, remaps = _ids(issues, profile)
     duplicated = _duplicated(issues)
-    ctx = LinkContext(PROJECT, repo_root, build_refs(issues, ids), OTHER_OFFSETS, GITHUB)
-    overrides = triage.get("type_overrides", {})
-    _remove_previous(backlog)
+    ctx = LinkContext(profile.project, repo_root, build_refs(issues, ids), profile.other_offsets,
+                      profile.github)
+    overrides, upstream = triage.get("type_overrides", {}), triage.get("duplicates", {})
+    _remove_previous(backlog, profile)
 
-    type_notes, wontdo, drafts, draft_number = [], [], [], 0
+    dup_notes, type_notes, wontdo, drafts, draft_number = [], [], [], [], 0
     for issue in issues:
         folder = _placement(issue, triage, duplicated)
-        cr_type = _triage_entry(overrides, issue, duplicated) or TYPE_MAP[issue.type]
+        upstream_cr = _triage_entry(upstream, issue, duplicated)
+        cr_type = (dup_types.get(issue.rel_path) or _triage_entry(overrides, issue, duplicated)
+                   or TYPE_MAP[issue.type])
         if cr_type != issue.type:
             type_notes.append(f"#{issue.number:03d}: {issue.type!r} -> {cr_type}")
-        labels, final_summary, status = [], None, "To Do"
-        if folder == "completed":
+        labels, final_summary, status, project = [], None, "To Do", profile.project
+        if upstream_cr:
+            task_id, status, labels, project = f"CR-{ids[issue.rel_path]}", "Done", ["wontdo"], UPSTREAM
+            final_summary = f"Duplicate of CR-{upstream_cr}, filed upstream by hand."
+            dup_notes.append(f"#{issue.number:03d} -> {task_id}: duplicate of CR-{upstream_cr}")
+        elif folder == "completed":
             task_id, status = f"CR-{ids[issue.rel_path]}", "Done"
             if WONTDO_RE.match(issue.status_note):
                 labels = ["wontdo"]
@@ -162,21 +211,22 @@ def convert(repo_root, tracker_root, triage):
             task_id = f"CR-{ids[issue.rel_path]}"
             status = _triage_entry(triage["open"], issue, duplicated).get("status", "To Do")
         body = rewrite_issue_body(assemble_description(issue), posixpath.dirname(issue.rel_path), ctx)
-        description = f"{body}\n\n{PROVENANCE_PREFIX}{issue.number:03d}."
+        description = f"{body}\n\n{profile.provenance_prefix}{issue.number:03d}."
         text = render_task(task_id=task_id, title=issue.title, status=status, created=issue.date,
                            labels=labels, description=description, type_=cr_type,
-                           project=PROJECT, final_summary=final_summary)
+                           project=project, final_summary=final_summary)
         (backlog / folder / filename_for(task_id, issue.title)).write_text(text, encoding="utf-8")
 
     counts = expected_counts(issues, triage)
     sections = [
+        ("Duplicates of plcc-ng issues", dup_notes),
         ("Duplicate-number remaps", remaps),
         ("Type mappings (non-identity)", type_notes),
         ("Won't-do (abandoned or superseded)", wontdo),
         ("Drafts (lose their number; provenance line keeps it greppable)", drafts),
         ("Link findings", ctx.findings),
     ]
-    lines = [f"# {PROJECT} migration report", "",
+    lines = [f"# {profile.project} migration report", "",
              f"Converted {len(issues)} files: {counts['completed']} -> completed/, "
              f"{counts['tasks']} -> tasks/, {counts['drafts']} -> drafts/.", ""]
     for title, items in sections:
@@ -184,15 +234,15 @@ def convert(repo_root, tracker_root, triage):
     return "\n".join(lines)
 
 
-def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+def main(argv=None, profile=PLCC_NG, doc=__doc__):
+    parser = argparse.ArgumentParser(description=doc.splitlines()[0])
     parser.add_argument("--repo", required=True, type=Path)
     parser.add_argument("--tracker", required=True, type=Path)
     parser.add_argument("--triage", required=True, type=Path)
     parser.add_argument("--report", required=True, type=Path)
     args = parser.parse_args(argv)
     triage = json.loads(args.triage.read_text(encoding="utf-8"))
-    report = convert(args.repo, args.tracker, triage)
+    report = convert(args.repo, args.tracker, triage, profile)
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(report, encoding="utf-8")
     print(report.splitlines()[2])
