@@ -25,6 +25,7 @@ FOLDERS = ("tasks", "completed", "drafts")
 AS_FOLDER = {"cr": "tasks", "draft": "drafts", "wontdo": "completed"}
 TRIAGE_TABLES = ("open", "duplicates", "type_overrides", "references")
 TYPE_LINE_RE = re.compile(r"^type: (\S+)$", re.MULTILINE)
+DRAFT_FILE_RE = re.compile(r"^draft-(\d+) - ")
 
 
 def load_issues(repo_root):
@@ -109,6 +110,13 @@ def _remove_previous(backlog):
                 path.unlink()
 
 
+def _highest_draft(backlog):
+    """The highest DRAFT-N number already in the tracker's drafts/, or 0."""
+    numbers = [int(m.group(1)) for path in (backlog / "drafts").glob("draft-*.md")
+               if (m := DRAFT_FILE_RE.match(path.name))]
+    return max(numbers, default=0)
+
+
 def _rewrite_bodies(repo_root, issues, triage):
     """Rewrite every issue's description; return (bodies by number, the link context)."""
     ctx = LinkContext(PROJECT, Path(repo_root), issue_refs(issues), OTHER_OFFSETS, GITHUB,
@@ -134,7 +142,8 @@ def convert(repo_root, tracker_root, triage):
     _remove_previous(backlog)
 
     duplicates, overrides = triage.get("duplicates", {}), triage.get("type_overrides", {})
-    dup_notes, type_notes, wontdo, drafts, draft_number = [], [], [], [], 0
+    dup_notes, type_notes, wontdo, drafts = [], [], [], []
+    draft_number = _highest_draft(backlog)
     for issue in issues:
         key, folder = str(issue.number), _placement(issue, triage)
         task_id, status, labels, final_summary = f"CR-{issue.number + OFFSET}", "Done", [], None

@@ -201,6 +201,15 @@ class ConvertTest(LanguagesNgTestCase):
         self.assertIn("cr-162 - Python-quoted-upstream.md", self.files("completed"))
         self.assertIn("cr-187 - Records-upstream.md", self.files("tasks"))
 
+    def test_drafts_number_after_existing_drafts(self):
+        other = self.backlog / "drafts" / "draft-3 - Other-idea.md"
+        other.write_text("---\nid: DRAFT-3\ntitle: Other idea\n---\n")
+        languages_ng.convert(self.repo, self.tracker, self.triage)
+        self.assertEqual(self.files("drafts"), ["draft-3 - Other-idea.md", "draft-4 - Slow.md"])
+        self.assertIn("id: DRAFT-4", self.read("drafts", "draft-4 - Slow.md"))
+        languages_ng.convert(self.repo, self.tracker, self.triage)
+        self.assertEqual(self.files("drafts"), ["draft-3 - Other-idea.md", "draft-4 - Slow.md"])
+
     def test_is_migrated_matches_only_languages_ng(self):
         languages_ng.convert(self.repo, self.tracker, self.triage)
         self.assertTrue(languages_ng.is_migrated(self.backlog / "tasks" / "cr-531 - Disk.md"))
