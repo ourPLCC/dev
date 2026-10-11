@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-11 00:49'
-updated_date: '2026-10-11 01:41'
+updated_date: '2026-10-11 13:28'
 labels: []
 milestone: m-0
 dependencies: []
@@ -32,3 +32,9 @@ languages-ng prose also mixes three meanings of a bare #N: its own issues, its G
 - [ ] #3 The triage file records duplicates (emitted Done + wontdo, project plcc-ng, the plcc-ng issue's type, final summary naming its CR), N>53 reference decisions, open-issue triage, and type overrides; a re-run applies them, and verify.py fails while any N>53 reference has no entry
 - [ ] #4 verify.py and citations.py take the repo's driver as a parameter; migrate/tests cover the new parser, loader, #N rules, and triage application, and the existing plcc-ng tests still pass
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Smoke run against languages-ng main (26da95e) with the agreed triage: 53 files -> 42 completed / 10 tasks / 1 draft; 92 defaulted #N; 16 unresolved #N, all plcc-ng issue numbers written as 'upstream #N' or 'upstream's own #N' in 022, 036, 038, 048, 052 (185, 186, 187, 170, 189). For CR-1000: those 16 need references entries (likely all CR-N at +0). The run also found that a converted draft took a number an existing tracker draft already had; fixed on this branch (drafts now number after the highest existing one). plcc_ng.py has the same scheme but is not re-run.
+<!-- SECTION:NOTES:END -->
