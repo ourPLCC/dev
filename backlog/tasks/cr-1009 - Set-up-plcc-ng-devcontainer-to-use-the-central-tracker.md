@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-09 12:36'
-updated_date: '2026-10-11 18:53'
+updated_date: '2026-10-11 19:06'
 labels: []
 milestone: m-0
 dependencies:
@@ -13,6 +13,8 @@ dependencies:
   - CR-1014
 references:
   - ../../../plcc-ng/dev-docs/specs/2026-10-08-199-central-tracker-design.md
+  - >-
+    ../../../plcc-ng-devcontainer/dev-docs/specs/2026-10-11-central-tracker-setup-design.md
 type: chore
 project: plcc-ng-devcontainer
 ordinal: 7000
@@ -28,8 +30,10 @@ Carry over from plcc-ng: give the ~/.claude named volume a per-repo name (not pl
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The devcontainer clones the tracker beside the repo if missing, bind-mounts it at /workspaces/dev, sets BACKLOG_CWD, and installs the backlog version pinned in .backlog-version
-- [ ] #2 Creating the container fails loudly if git refuses the repo or the tracker (dubious ownership)
-- [ ] #3 After a rebuild on the host, backlog task list --project plcc-ng-devcontainer --plain works inside the container
-- [ ] #4 AGENTS.md imports the org agent rules and developer guide, and CONTRIBUTING.md opens with the link to the org developer guide
+- [ ] #1 The devcontainer clones ../dev if missing, mounts it at /workspaces/dev, sets BACKLOG_CWD, installs the backlog version pinned in .backlog-version, adds Claude Code with a plcc-ng-devcontainer-claude volume, and approves AGENTS.md's imports
+- [ ] #2 Creating the container fails loudly if git refuses the repo or the tracker (dubious ownership); safe.directory entries name only /workspaces/dev and this repo's own path
+- [ ] #3 After a rebuild in local VS Code, backlog task list --project plcc-ng-devcontainer --plain works inside the container and /memory lists the three imported files
+- [ ] #4 AGENTS.md imports the org agent rules, the org developer guide, and CONTRIBUTING.md; CONTRIBUTING.md opens with the link to the org developer guide, and the README's Contributing section points to it
+- [ ] #5 No document says this repo's own devcontainer works in Codespaces
+- [ ] #6 .gitignore ignores .plans/, .claude/settings.json allows backlog, and bash scripts/reuse.sh lint passes
 <!-- AC:END -->
