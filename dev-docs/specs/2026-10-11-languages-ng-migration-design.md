@@ -37,7 +37,7 @@ for languages-ng only:
 ## Decision summary
 
 Extend `migrate/` with a languages-ng parser and loader rather than converting
-by hand. The issues hold about 174 Markdown links and 117 bare `#N`
+by hand. The issues hold about 174 Markdown links and 118 bare `#N`
 references outside code; the existing link rewriting, emitting, and
 verification already handle the links, fences, section markers, and provenance,
 and the same code rewrites links in the code repo's docs at switch-over. Only
@@ -58,9 +58,11 @@ so `emit.py` and `links.py` are reused unchanged except as noted below.
 - **Template comment:** stripped by the existing `Classify by user-facing
   impact` pattern (39 files carry it).
 - **Sections:** `## Summary`, when present (21 issues), comes first, demoted
-  to `### Summary`; then the `## Description` text; then every other section
-  demoted to `###`, as for plcc-ng. The Summary leads because it is the
-  one-paragraph triage view.
+  to `### Summary`, followed by the `## Description` text under its own
+  `### Description` heading (without one, the description would read as part
+  of the summary); then every other section demoted to `###`, as for plcc-ng.
+  Without a Summary, the description text leads unheaded, as for plcc-ng. The
+  Summary leads because it is the one-paragraph triage view.
 
 | CR field | Source |
 | --- | --- |
@@ -85,9 +87,9 @@ is resolved by its context:
 | Context | Count | Result |
 | --- | --- | --- |
 | Preceded by `PR` or `pull request` | 6 | `[#N](https://github.com/ourPLCC/languages-ng/pull/N)` |
-| Qualified with plcc-ng (`plcc-ng #187`, `` `ourPLCC/plcc-ng` issue #187 ``) | 1 | `CR-N` (plcc-ng's offset, +0) |
-| Unqualified, N ≤ 53 | 90 | `CR-<N + 500>`, listed in the report as defaulted |
-| Unqualified, N > 53 | 20 | Left as text and listed in the report with its surrounding text; resolved by a triage entry |
+| Qualified with plcc-ng (`plcc-ng #187`, `` `ourPLCC/plcc-ng` issue #187 ``) | 4 | `CR-N` (plcc-ng's offset, +0) |
+| Unqualified, N ≤ 53 | 92 | `CR-<N + 500>`, listed in the report as defaulted, with its surrounding text |
+| Unqualified, N > 53 | 16 | Left as text and listed in the report with its surrounding text; resolved by a triage entry |
 
 The N ≤ 53 default is languages-ng's own convention: inside issue files a bare
 `#N` names an issue, and its PRs are written `PR #N` (languages-ng 052 and 053
@@ -239,6 +241,6 @@ and allow `Bash(backlog:*)` in `.claude/settings.json`.
 | Alternative | Why not |
 | --- | --- |
 | Convert the 53 issues by hand | About 380 link and reference edits plus frontmatter, section markers, and provenance per file; a missing section marker hides text from search with no error |
-| Ask a human about all 110 unqualified `#N` | The 9-of-9 spot check and the repo's convention make 90 of them mechanical; the list would confirm the default every time |
-| Guess N > 53 as plcc-ng issues | Probably right, but it is a guess, and 20 checks are cheap |
+| Ask a human about all 108 unqualified `#N` | The 9-of-9 spot check and the repo's convention make 92 of them mechanical; the list would confirm the default every time |
+| Guess N > 53 as plcc-ng issues | Probably right, but it is a guess, and 16 checks are cheap |
 | Keep `CLAUDE.md`'s memory section, reworded | Its premise was the missing volume; with the volume, the org rule (commit what a teammate needs) covers the rest |
