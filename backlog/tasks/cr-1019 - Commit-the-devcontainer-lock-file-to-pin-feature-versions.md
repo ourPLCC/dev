@@ -1,9 +1,11 @@
 ---
 id: CR-1019
 title: Commit the devcontainer lock file to pin feature versions
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@StoneyJackson'
 created_date: '2026-10-11 18:43'
+updated_date: '2026-10-11 18:43'
 labels: []
 dependencies: []
 type: chore
