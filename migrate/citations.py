@@ -1,6 +1,6 @@
 """Count citations of each open legacy issue, as triage evidence.
 
-Usage: python3 -m migrate.citations --repo REPO [--driver plcc-ng|languages-ng]
+Usage: python3 -m migrate.citations --repo REPO [--driver plcc-ng|languages-ng|plcc-ng-demo]
 """
 import argparse
 import re

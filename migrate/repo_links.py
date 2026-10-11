@@ -1,6 +1,6 @@
 """Rewrite links into a code repo's retired dev-docs/issues/ tracker to CR IDs.
 
-Usage: python3 -m migrate.repo_links --repo PATH --project plcc-ng|languages-ng [--check]
+Usage: python3 -m migrate.repo_links --repo PATH --project plcc-ng|languages-ng|plcc-ng-demo [--check]
 """
 import argparse
 import posixpath

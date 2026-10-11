@@ -192,15 +192,20 @@ the project and type rules.
 ## Migration tooling
 
 `migrate/` converts legacy in-repo trackers (Python 3 standard library), with
-one driver per repo: `python3 -m migrate.plcc_ng` and
-`python3 -m migrate.languages_ng` (each takes `--repo`, `--tracker`,
-`--triage`, `--report`). `python3 -m migrate.verify` and
-`python3 -m migrate.citations` take `--driver plcc-ng|languages-ng` (default
-`plcc-ng`); `python3 -m migrate.repo_links --project <repo>` picks the driver
-from the project. Decisions are in `migrate/<repo>-triage.json`, results in
+one driver per repo: `python3 -m migrate.plcc_ng`,
+`python3 -m migrate.languages_ng`, and `python3 -m migrate.plcc_ng_demo`
+(each takes `--repo`, `--tracker`, `--triage`, `--report`).
+`python3 -m migrate.verify` and `python3 -m migrate.citations` take
+`--driver plcc-ng|languages-ng|plcc-ng-demo` (default `plcc-ng`);
+`python3 -m migrate.repo_links --project <repo>` picks the driver from the
+project. Decisions are in `migrate/<repo>-triage.json`, results in
 `migrate/reports/<repo>.md`. plcc-ng's triage keys (`open`,
 `type_overrides`) are a legacy number (`"105"`) or, for a number two files
 share, the file stem (`"035-python-emitter-missing-semantics-blocks"`).
+plcc-ng-demo's tracker has plcc-ng's format, so its driver runs plcc-ng's
+converter at offset +800; its triage file adds `duplicates` (legacy number →
+the plcc-ng CR it duplicates), per
+[its migration spec](specs/2026-10-11-plcc-ng-demo-migration-design.md).
 languages-ng's are legacy numbers only, and its triage file adds
 `duplicates` (legacy number → the plcc-ng CR it duplicates), `references`
 (legacy number → `{"#N": replacement}` for a bare `#N` the tool cannot

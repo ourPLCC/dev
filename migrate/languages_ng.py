@@ -9,7 +9,8 @@ import re
 import sys
 from pathlib import Path
 
-from migrate.emit import CORE_TYPES, TYPE_MAP, assemble_description, filename_for, render_task
+from migrate.emit import (CORE_TYPES, TYPE_MAP, assemble_description, filename_for,
+                          render_task, tracker_type)
 from migrate.legacy import parse_frontmatter_issue
 from migrate.links import IssueRef, LinkContext, rewrite_issue_body
 
@@ -24,7 +25,6 @@ PROVENANCE_END_RE = re.compile(
 FOLDERS = ("tasks", "completed", "drafts")
 AS_FOLDER = {"cr": "tasks", "draft": "drafts", "wontdo": "completed"}
 TRIAGE_TABLES = ("open", "duplicates", "type_overrides", "references")
-TYPE_LINE_RE = re.compile(r"^type: (\S+)$", re.MULTILINE)
 DRAFT_FILE_RE = re.compile(r"^draft-(\d+) - ")
 
 
@@ -50,15 +50,6 @@ def expected_counts(issues, triage):
     for issue in issues:
         counts[_placement(issue, triage)] += 1
     return counts
-
-
-def tracker_type(backlog, cr):
-    """The type of CR-<cr> in the tracker, or None if the tracker has no such CR."""
-    for folder in ("tasks", "completed"):
-        for path in (Path(backlog) / folder).glob(f"cr-{cr} - *.md"):
-            found = TYPE_LINE_RE.search(path.read_text(encoding="utf-8"))
-            return found.group(1) if found else None
-    return None
 
 
 def validate(issues, triage, backlog):
