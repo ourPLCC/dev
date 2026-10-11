@@ -4,11 +4,13 @@ title: 'migrate: convert languages-ng''s frontmatter-format tracker'
 status: To Do
 assignee: []
 created_date: '2026-10-11 00:49'
+updated_date: '2026-10-11 01:41'
 labels: []
 milestone: m-0
 dependencies: []
 references:
   - ../../../plcc-ng/dev-docs/specs/2026-10-08-199-central-tracker-design.md
+  - ../../dev-docs/specs/2026-10-11-languages-ng-migration-design.md
 type: chore
 project: dev
 ordinal: 4500
@@ -24,8 +26,8 @@ languages-ng prose also mixes three meanings of a bare #N: its own issues, its G
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 migrate converts a languages-ng checkout's dev-docs/issues/ into Backlog.md files at offset +500, taking status from closed:, the date from opened:, and the project from target: (this repo -> languages-ng, ourPLCC/plcc-ng -> plcc-ng)
-- [ ] #2 A bare #N whose meaning is not certain is left as text and listed in the report with its surrounding text; it is never guessed
-- [ ] #3 The triage file can record how each ambiguous #N resolves, which issues are duplicates of a plcc-ng CR (emitted Done + wontdo with a final summary naming that CR), open-issue triage, and type overrides; a re-run applies them
-- [ ] #4 migrate/tests cover the new parser and loader, and the existing plcc-ng tests still pass
+- [ ] #1 migrate converts a languages-ng checkout's dev-docs/issues/ into Backlog.md files at offset +500, taking status from closed:, the date from opened:, and the project from target: (this repo -> languages-ng, ourPLCC/plcc-ng -> plcc-ng); unknown frontmatter keys or targets stop the run
+- [ ] #2 Bare #N is resolved by context: PR #N -> the languages-ng PR URL; plcc-ng-qualified -> CR-N; unqualified N<=53 -> CR-<N+500>, listed in the report as defaulted; unqualified N>53 left as text and listed with its surrounding text, never guessed
+- [ ] #3 The triage file records duplicates (emitted Done + wontdo, project plcc-ng, the plcc-ng issue's type, final summary naming its CR), N>53 reference decisions, open-issue triage, and type overrides; a re-run applies them, and verify.py fails while any N>53 reference has no entry
+- [ ] #4 verify.py and citations.py take the repo's driver as a parameter; migrate/tests cover the new parser, loader, #N rules, and triage application, and the existing plcc-ng tests still pass
 <!-- AC:END -->
