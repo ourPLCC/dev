@@ -1,10 +1,11 @@
 ---
 id: CR-1009
 title: Set up plcc-ng-devcontainer to use the central tracker
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@StoneyJackson'
 created_date: '2026-10-09 12:36'
-updated_date: '2026-10-10 19:25'
+updated_date: '2026-10-11 18:53'
 labels: []
 milestone: m-0
 dependencies:
