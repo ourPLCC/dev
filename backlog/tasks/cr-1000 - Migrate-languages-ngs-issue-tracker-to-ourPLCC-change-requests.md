@@ -1,11 +1,11 @@
 ---
 id: CR-1000
 title: Migrate languages-ng's issue tracker to ourPLCC/dev
-status: In Progress
+status: Done
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-09 01:55'
-updated_date: '2026-10-11 15:35'
+updated_date: '2026-10-11 15:41'
 labels: []
 milestone: m-0
 dependencies:
@@ -52,3 +52,9 @@ From CR-1005: assign_ids now takes dup_offset and dup_range. The ID table reserv
 
 From CR-1015 (merged): a provisional triage file and the smoke-run report are in /workspaces/dev/.plans/cr-1000/ (gitignored, local only). (1) Issue 048's bare #12 in 'everything from #12 up resolves to nothing' means GitHub numbers, not issue 12; it was defaulted to CR-512, so add a references entry for 48 that leaves it as #12. (2) At the freeze re-run, check for issues filed since the dry run with target: ourPLCC/plcc-ng; the tool does not check that they appear in duplicates and would convert them as ordinary plcc-ng CRs.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Converted languages-ng's 53 issues to CR-501..CR-553 plus one draft (42 completed, 10 tasks, 1 draft) with reviewed reference triage, and switched languages-ng to the central tracker (PR #21: devcontainer, AGENTS.md, CONTRIBUTING.md, old tracker removed). Verified by verify.py, backlog doctor, bin/check.py, bin/test.bash (191/191), the AC 4 checks on merged main, and a host rebuild (/memory lists the three imports; backlog task list runs).
+<!-- SECTION:FINAL_SUMMARY:END -->
