@@ -1,8 +1,9 @@
 ---
 id: CR-1015
 title: 'migrate: convert languages-ng''s frontmatter-format tracker'
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@StoneyJackson'
 created_date: '2026-10-11 00:49'
 updated_date: '2026-10-11 01:41'
 labels: []
