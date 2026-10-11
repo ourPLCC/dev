@@ -5,10 +5,12 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-11 16:08'
-updated_date: '2026-10-11 16:08'
+updated_date: '2026-10-11 16:09'
 labels: []
 dependencies:
   - CR-1013
+references:
+  - ../../dev-docs/specs/2026-10-11-plcc-ng-demo-migration-design.md
 type: chore
 project: dev
 ordinal: 8000
@@ -26,4 +28,5 @@ CR-1001 needs plcc-ng-demo's five legacy issues converted at offset +800 (CR-801
 - [ ] #2 A triage entry marks a legacy issue as a duplicate of a plcc-ng CR: Done + wontdo, project plcc-ng, final summary naming the CR
 - [ ] #3 verify, citations, and repo_links run with --driver plcc-ng-demo / --project plcc-ng-demo
 - [ ] #4 plcc-ng and languages-ng migrate tests still pass; new behavior has tests
+- [ ] #5 migrate/plcc-ng-demo-triage.json records the spec's triage, and the converted CRs match its expected counts (completed/ 5)
 <!-- AC:END -->
