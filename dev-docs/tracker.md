@@ -191,13 +191,22 @@ the project and type rules.
 
 ## Migration tooling
 
-`migrate/` converts legacy in-repo trackers (Python 3 standard library). For
-plcc-ng: `python3 -m migrate.plcc_ng`, `python3 -m migrate.verify`,
-`python3 -m migrate.repo_links`; decisions in `migrate/plcc-ng-triage.json`,
-results in `migrate/reports/plcc-ng.md`. Triage keys (`open`,
+`migrate/` converts legacy in-repo trackers (Python 3 standard library), with
+one driver per repo: `python3 -m migrate.plcc_ng` and
+`python3 -m migrate.languages_ng` (each takes `--repo`, `--tracker`,
+`--triage`, `--report`). `python3 -m migrate.verify` and
+`python3 -m migrate.citations` take `--driver plcc-ng|languages-ng` (default
+`plcc-ng`); `python3 -m migrate.repo_links --project <repo>` picks the driver
+from the project. Decisions are in `migrate/<repo>-triage.json`, results in
+`migrate/reports/<repo>.md`. plcc-ng's triage keys (`open`,
 `type_overrides`) are a legacy number (`"105"`) or, for a number two files
-share, the file stem (`"035-python-emitter-missing-semantics-blocks"`). Tools that call `backlog` set
-`BACKLOG_CWD` to their target explicitly.
+share, the file stem (`"035-python-emitter-missing-semantics-blocks"`).
+languages-ng's are legacy numbers only, and its triage file adds
+`duplicates` (legacy number → the plcc-ng CR it duplicates), `references`
+(legacy number → `{"#N": replacement}` for a bare `#N` the tool cannot
+resolve), and open entries `"as": "wontdo"` with a `summary`; its rules are in
+[its migration spec](specs/2026-10-11-languages-ng-migration-design.md). Tools
+that call `backlog` set `BACKLOG_CWD` to their target explicitly.
 
 ## Working on the tracker tooling
 

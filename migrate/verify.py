@@ -1,6 +1,6 @@
 """Verify a converted tracker against its legacy source.
 
-Usage: python3 -m migrate.verify --repo PLCC_NG --tracker ISSUES --triage FILE
+Usage: python3 -m migrate.verify --repo REPO --tracker TRACKER --triage FILE [--driver plcc-ng|languages-ng]
 """
 import argparse
 import json
@@ -10,7 +10,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from migrate.plcc_ng import FOLDERS, expected_counts, is_migrated, load_issues
+from migrate import drivers, plcc_ng
 
 ID_RE = re.compile(r"^id: (\S+)$", re.MULTILINE)
 
@@ -28,14 +28,14 @@ def _backlog(tracker_root, *args):
                           capture_output=True, text=True)
 
 
-def verify(repo_root, tracker_root, triage):
+def verify(repo_root, tracker_root, triage, driver=plcc_ng):
     tracker_root = Path(tracker_root)
     backlog = tracker_root / "backlog"
     errors = []
-    expected = expected_counts(load_issues(repo_root), triage)
-    migrated = {folder: [p for p in (backlog / folder).glob("*.md") if is_migrated(p)]
-                for folder in FOLDERS}
-    for folder in FOLDERS:
+    expected = driver.expected_counts(driver.load_issues(repo_root), triage)
+    migrated = {folder: [p for p in (backlog / folder).glob("*.md") if driver.is_migrated(p)]
+                for folder in driver.FOLDERS}
+    for folder in driver.FOLDERS:
         if len(migrated[folder]) != expected[folder]:
             errors.append(f"{folder}/: {len(migrated[folder])} migrated files, expected {expected[folder]}")
     if not list((backlog / "completed").glob("cr-999 - *.md")):
@@ -66,6 +66,9 @@ def verify(repo_root, tracker_root, triage):
                             "--root", str(tracker_root)], capture_output=True, text=True)
     if check.returncode != 0:
         errors.append(f"bin/check.py failed:\n{check.stderr}")
+    if hasattr(driver, "unresolved_references"):
+        errors += [f"unresolved reference, add a triage entry: {item}"
+                   for item in driver.unresolved_references(repo_root, triage)]
     return errors
 
 
@@ -74,8 +77,10 @@ def main(argv=None):
     parser.add_argument("--repo", required=True, type=Path)
     parser.add_argument("--tracker", required=True, type=Path)
     parser.add_argument("--triage", required=True, type=Path)
+    parser.add_argument("--driver", choices=sorted(drivers.DRIVERS), default="plcc-ng")
     args = parser.parse_args(argv)
-    errors = verify(args.repo, args.tracker, json.loads(args.triage.read_text(encoding="utf-8")))
+    errors = verify(args.repo, args.tracker, json.loads(args.triage.read_text(encoding="utf-8")),
+                    drivers.load(args.driver))
     for error in errors:
         print(f"verify: {error}", file=sys.stderr)
     if errors:

@@ -1,14 +1,14 @@
 """Rewrite links into a code repo's retired dev-docs/issues/ tracker to CR IDs.
 
-Usage: python3 -m migrate.repo_links --repo PATH --project plcc-ng [--check]
+Usage: python3 -m migrate.repo_links --repo PATH --project plcc-ng|languages-ng [--check]
 """
 import argparse
 import posixpath
 import sys
 from pathlib import Path
 
+from migrate import drivers
 from migrate.links import LinkContext, rewrite_repo_doc
-from migrate.plcc_ng import assign_ids, build_refs, load_issues
 
 EXCLUDED_TOP_LEVEL = {"CHANGELOG.md"}
 
@@ -24,9 +24,8 @@ def target_files(repo_root):
 
 def rewrite_repo(repo_root, project, write=True):
     repo_root = Path(repo_root)
-    issues = load_issues(repo_root)
-    ids, _ = assign_ids(issues)
-    ctx = LinkContext(project, repo_root, build_refs(issues, ids), {}, "")
+    driver = drivers.load(project)
+    ctx = LinkContext(project, repo_root, driver.issue_refs(driver.load_issues(repo_root)), {}, "")
     changed = []
     for path in target_files(repo_root):
         rel = path.relative_to(repo_root).as_posix()
@@ -44,7 +43,7 @@ def rewrite_repo(repo_root, project, write=True):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--repo", required=True, type=Path)
-    parser.add_argument("--project", required=True)
+    parser.add_argument("--project", required=True, choices=sorted(drivers.DRIVERS))
     parser.add_argument("--check", action="store_true", help="report only; write nothing")
     args = parser.parse_args(argv)
     changed, findings = rewrite_repo(args.repo, args.project, write=not args.check)

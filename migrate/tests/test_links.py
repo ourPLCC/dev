@@ -124,5 +124,61 @@ class LinksTest(unittest.TestCase):
         self.assertEqual(out, "Issue: CR-160\nconv [emit](../../src/plcc/emit.py) #160")
 
 
+class LanguagesNgReferencesTest(unittest.TestCase):
+    PULL = "https://github.com/ourPLCC/languages-ng/pull"
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.ctx = LinkContext(
+            repo="languages-ng", repo_root=Path(self._tmp.name),
+            issues={12: [IssueRef("ci", 512)], 31: [IssueRef("disk", 531)]},
+            other_offsets={"plcc-ng": 0, "plcc-ng-demo": 800},
+            github="https://github.com/ourPLCC/languages-ng",
+            references={"33": {"#187": "CR-187"}},
+        )
+        self.ctx.source = "40"
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def body(self, text):
+        return rewrite_issue_body(text, "dev-docs/issues", self.ctx)
+
+    def test_pr_mention_links_the_pull_request(self):
+        self.assertEqual(
+            self.body("merged in PR #12, Pull Request #13, and pull request #14."),
+            f"merged in PR [#12]({self.PULL}/12), Pull Request [#13]({self.PULL}/13), "
+            f"and pull request [#14]({self.PULL}/14).")
+        self.assertEqual(self.ctx.defaulted, [])
+
+    def test_plcc_ng_qualified_mention_uses_plcc_ng_numbering(self):
+        self.assertEqual(self.body("plcc-ng #187 and `ourPLCC/plcc-ng` issue #188"),
+                         "plcc-ng CR-187 and `ourPLCC/plcc-ng` issue CR-188")
+        self.assertEqual(self.ctx.unresolved, [])
+
+    def test_unqualified_local_number_defaults_to_the_issue_and_is_listed(self):
+        self.assertEqual(self.body("as #31 showed"), "as CR-531 showed")
+        self.assertEqual(self.ctx.defaulted, ['40: #31 -> CR-531 in "as #31 showed"'])
+        self.assertEqual(self.ctx.unresolved, [])
+
+    def test_unqualified_unknown_number_is_left_and_listed_with_context(self):
+        self.assertEqual(self.body("the buffering workaround to #187."),
+                         "the buffering workaround to #187.")
+        self.assertEqual(self.ctx.unresolved, ['40: #187 in "the buffering workaround to #187."'])
+
+    def test_triage_decision_wins(self):
+        self.ctx.source = "33"
+        self.assertEqual(self.body("depends on #187 and #12"), "depends on CR-187 and CR-512")
+        self.assertEqual(self.ctx.unresolved, [])
+
+    def test_code_is_left_alone_and_not_reported(self):
+        text = "run `x #187` then\n```\n#187 PR #12\n```\n"
+        self.assertEqual(self.body(text), text)
+        self.assertEqual((self.ctx.unresolved, self.ctx.defaulted), ([], []))
+
+    def test_retired_issue_scripts_become_plain_text(self):
+        self.assertEqual(self.body("[close.bash](../../bin/issues/close.bash)"), "close.bash")
+
+
 if __name__ == "__main__":
     unittest.main()

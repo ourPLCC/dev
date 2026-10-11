@@ -1,6 +1,6 @@
 """Count citations of each open legacy issue, as triage evidence.
 
-Usage: python3 -m migrate.citations --repo PLCC_NG
+Usage: python3 -m migrate.citations --repo REPO [--driver plcc-ng|languages-ng]
 """
 import argparse
 import re
@@ -8,7 +8,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from migrate.plcc_ng import load_issues
+from migrate import drivers
 
 COMMIT_SEP = "\x1eEND\x1e"
 
@@ -45,8 +45,9 @@ def count_citations(repo_root, number, own_paths, _messages=None):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--repo", required=True, type=Path)
+    parser.add_argument("--driver", choices=sorted(drivers.DRIVERS), default="plcc-ng")
     args = parser.parse_args(argv)
-    issues = load_issues(args.repo)
+    issues = drivers.load(args.driver).load_issues(args.repo)
     messages = _git_messages(args.repo)
     for issue in (i for i in issues if not i.closed):
         same = {i.rel_path for i in issues if i.number == issue.number}
