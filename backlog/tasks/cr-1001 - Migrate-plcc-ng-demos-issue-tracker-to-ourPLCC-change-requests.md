@@ -5,13 +5,14 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-09 01:55'
-updated_date: '2026-10-11 16:08'
+updated_date: '2026-10-11 16:09'
 labels: []
 milestone: m-0
 dependencies:
   - CR-1016
 references:
   - ../../../plcc-ng/dev-docs/specs/2026-10-08-199-central-tracker-design.md
+  - ../../dev-docs/specs/2026-10-11-plcc-ng-demo-migration-design.md
 type: chore
 project: plcc-ng-demo
 ordinal: 6000
