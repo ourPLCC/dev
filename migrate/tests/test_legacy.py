@@ -3,7 +3,7 @@ import textwrap
 import unittest
 from pathlib import Path
 
-from migrate.legacy import parse_issue
+from migrate.legacy import parse_frontmatter_issue, parse_issue
 
 SAMPLE = textwrap.dedent("""\
     # 035 - plcc-diagram: output `x` hangs
@@ -89,6 +89,96 @@ class ParseIssueTest(unittest.TestCase):
         path.write_text("Not a title\n")
         with self.assertRaises(ValueError):
             parse_issue(path, self.repo)
+
+
+LN_SAMPLE = textwrap.dedent("""\
+    ---
+    type: chore
+    target: ourPLCC/plcc-ng
+    upstream: ourPLCC/plcc-ng 188-follow-set.md
+    opened: 2026-08-11
+    closed: 2026-08-12
+    ---
+
+    # 038 - FOLLOW set omits the nullable tail
+
+    <!--
+    `type` is a conventional commit type. Classify by user-facing impact, not
+    by whether something was "broken".
+    -->
+
+    ## Summary
+
+    One paragraph.
+
+    ## Description
+
+    It breaks.
+
+    ```text
+    ## Summary
+    ```
+
+    ## Notes
+
+    See #6.
+    """)
+
+
+class FrontmatterIssueTest(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self._tmp.name)
+        self.issues = self.repo / "dev-docs" / "issues"
+        self.issues.mkdir(parents=True)
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def parse(self, text=LN_SAMPLE, name="038-follow-set.md"):
+        path = self.issues / name
+        path.write_text(text)
+        return parse_frontmatter_issue(path, self.repo)
+
+    def test_fields(self):
+        issue = self.parse()
+        self.assertEqual((issue.number, issue.slug, issue.title),
+                         (38, "follow-set", "FOLLOW set omits the nullable tail"))
+        self.assertEqual((issue.type, issue.target, issue.date),
+                         ("chore", "ourPLCC/plcc-ng", "2026-08-11"))
+        self.assertTrue(issue.closed)
+        self.assertEqual(issue.status_note, "")
+        self.assertEqual(issue.rel_path, "dev-docs/issues/038-follow-set.md")
+
+    def test_summary_leads_and_template_comment_is_dropped(self):
+        issue = self.parse()
+        self.assertEqual(issue.preamble, "### Summary\n\nOne paragraph.")
+        self.assertEqual([heading for heading, _ in issue.sections], ["Description", "Notes"])
+        self.assertIn("## Summary", issue.sections[0][1])
+        everything = issue.preamble + "".join(body for _, body in issue.sections)
+        self.assertNotIn("Classify", everything)
+
+    def test_empty_closed_means_open(self):
+        self.assertFalse(self.parse(LN_SAMPLE.replace("closed: 2026-08-12", "closed:")).closed)
+
+    def test_empty_summary_is_dropped(self):
+        self.assertEqual(self.parse(LN_SAMPLE.replace("One paragraph.\n", "")).preamble, "")
+
+    def test_unknown_or_missing_key_is_an_error(self):
+        for old, new in (("closed: 2026-08-12", "closed: 2026-08-12\npriority: high"),
+                         ("target: ourPLCC/plcc-ng\n", "")):
+            with self.subTest(new=new):
+                with self.assertRaises(ValueError) as cm:
+                    self.parse(LN_SAMPLE.replace(old, new))
+                self.assertIn("038-follow-set.md", str(cm.exception))
+
+    def test_title_number_must_match_filename(self):
+        with self.assertRaises(ValueError):
+            self.parse(name="039-follow-set.md")
+
+    def test_bad_opened_date_is_an_error(self):
+        with self.assertRaises(ValueError):
+            self.parse(LN_SAMPLE.replace("opened: 2026-08-11", "opened: YYYY-MM-DD"))
 
 
 if __name__ == "__main__":
