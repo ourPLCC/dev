@@ -1,6 +1,6 @@
 """Verify a converted tracker against its legacy source.
 
-Usage: python3 -m migrate.verify --repo REPO --tracker TRACKER --triage FILE [--driver plcc-ng|languages-ng]
+Usage: python3 -m migrate.verify --repo REPO --tracker TRACKER --triage FILE [--driver plcc-ng|languages-ng|plcc-ng-demo]
 """
 import argparse
 import json
