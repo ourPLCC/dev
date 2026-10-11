@@ -130,5 +130,91 @@ class LoadAndValidateTest(LanguagesNgTestCase):
         self.assert_invalid("#012 is used by more than one file")
 
 
+class ConvertTest(LanguagesNgTestCase):
+    def files(self, folder):
+        return sorted(p.name for p in (self.backlog / folder).glob("*.md"))
+
+    def read(self, folder, name):
+        return (self.backlog / folder / name).read_text()
+
+    def test_convert_places_files(self):
+        languages_ng.convert(self.repo, self.tracker, self.triage)
+        self.assertEqual(self.files("completed"),
+                         ["cr-162 - Python-quoted-upstream.md", "cr-503 - Python-quoted.md",
+                          "cr-512 - CI.md", "cr-537 - Records.md", "cr-543 - Help.md"])
+        self.assertEqual(self.files("tasks"), ["cr-187 - Records-upstream.md", "cr-531 - Disk.md"])
+        self.assertEqual(self.files("drafts"), ["draft-1 - Slow.md"])
+
+    def test_duplicates_are_wontdo_with_the_plcc_ng_type(self):
+        languages_ng.convert(self.repo, self.tracker, self.triage)
+        quoted = self.read("completed", "cr-503 - Python-quoted.md")
+        for expected in ("status: Done", "  - wontdo", "type: docs", "project: plcc-ng",
+                         "Duplicate of CR-162, filed upstream by hand."):
+            self.assertIn(expected, quoted)
+        records = self.read("completed", "cr-537 - Records.md")
+        self.assertIn("type: feat", records)
+        self.assertIn("Duplicate of CR-187, filed upstream by hand.", records)
+
+    def test_open_issue_outcomes(self):
+        languages_ng.convert(self.repo, self.tracker, self.triage)
+        disk = self.read("tasks", "cr-531 - Disk.md")
+        self.assertIn("status: In Progress", disk)
+        self.assertIn("project: languages-ng", disk)
+        self.assertIn("### Summary\n\nDisk fills.\n\nUnlike CR-187, see CR-512.", disk)
+        self.assertIn("Migrated from languages-ng #031.\n<!-- SECTION:DESCRIPTION:END -->", disk)
+        help_ = self.read("completed", "cr-543 - Help.md")
+        self.assertIn("  - wontdo", help_)
+        self.assertIn(OBSOLETE, help_)
+
+    def test_references_in_body(self):
+        languages_ng.convert(self.repo, self.tracker, self.triage)
+        ci = self.read("completed", "cr-512 - CI.md")
+        self.assertIn("Merged in PR [#12](https://github.com/ourPLCC/languages-ng/pull/12); "
+                      "see CR-531.", ci)
+
+    def test_report(self):
+        report = languages_ng.convert(self.repo, self.tracker, self.triage)
+        self.assertIn("Converted 6 files: 4 -> completed/, 1 -> tasks/, 1 -> drafts/.", report)
+        self.assertIn("- #003 -> CR-503: duplicate of CR-162", report)
+        self.assertIn("- 12: #31 -> CR-531", report)
+        self.assertIn(f"- #043 -> CR-543: {OBSOLETE}", report)
+
+    def test_unresolved_reference_is_reported(self):
+        (self.issues / "044-git.md").write_text(issue(44, "Git", "test", closed="",
+                                                      body="Same workaround as #186."))
+        self.triage["open"]["44"] = {"as": "cr", "reason": "r"}
+        # The context runs 30 characters past the reference, into the demoted Notes section.
+        expected = ['44: #186 in "Same workaround as #186. ### Notes N."']
+        self.assertEqual(languages_ng.unresolved_references(self.repo, self.triage), expected)
+        report = languages_ng.convert(self.repo, self.tracker, self.triage)
+        self.assertIn(f"- {expected[0]}", report)
+        self.assertIn("Same workaround as #186.", self.read("tasks", "cr-544 - Git.md"))
+        self.triage["references"]["44"] = {"#186": "CR-186"}
+        self.assertEqual(languages_ng.unresolved_references(self.repo, self.triage), [])
+
+    def test_rerun_replaces_only_its_own_output(self):
+        languages_ng.convert(self.repo, self.tracker, self.triage)
+        (self.issues / "042-slow.md").unlink()
+        del self.triage["open"]["42"]
+        languages_ng.convert(self.repo, self.tracker, self.triage)
+        self.assertEqual(self.files("drafts"), [])
+        self.assertIn("cr-162 - Python-quoted-upstream.md", self.files("completed"))
+        self.assertIn("cr-187 - Records-upstream.md", self.files("tasks"))
+
+    def test_is_migrated_matches_only_languages_ng(self):
+        languages_ng.convert(self.repo, self.tracker, self.triage)
+        self.assertTrue(languages_ng.is_migrated(self.backlog / "tasks" / "cr-531 - Disk.md"))
+        self.assertFalse(languages_ng.is_migrated(self.backlog / "tasks" / "cr-187 - Records-upstream.md"))
+
+    def test_main_writes_report(self):
+        triage = Path(self._tmp.name) / "triage.json"
+        triage.write_text(json.dumps(self.triage))
+        report = Path(self._tmp.name) / "reports" / "languages-ng.md"
+        status = languages_ng.main(["--repo", str(self.repo), "--tracker", str(self.tracker),
+                                    "--triage", str(triage), "--report", str(report)])
+        self.assertEqual(status, 0)
+        self.assertTrue(report.read_text().startswith("# languages-ng migration report"))
+
+
 if __name__ == "__main__":
     unittest.main()
