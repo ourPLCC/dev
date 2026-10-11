@@ -1,11 +1,11 @@
 ---
 id: CR-1001
 title: Migrate plcc-ng-demo's issue tracker to ourPLCC/dev
-status: In Progress
+status: Done
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-09 01:55'
-updated_date: '2026-10-11 18:24'
+updated_date: '2026-10-11 18:31'
 labels: []
 milestone: m-0
 dependencies:
@@ -39,3 +39,9 @@ From CR-1000: after the switch-over, scan the code repo for broken relative Mark
 
 From PR #6 review (Copilot): containerEnv's safe.directory for the repo itself was hard-coded (/workspaces/plcc-ng-demo) while postCreateCommand uses ${containerWorkspaceFolder}; a renamed checkout would fail the git status assertion. Fixed here. plcc-ng and languages-ng hard-code the same value (/workspaces/plcc-ng, /workspaces/languages-ng) and could take the same fix.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Changed plcc-ng-demo to the central tracker: plcc-ng-demo's five legacy issues converted at +800 as CR-801..CR-805 (001, 002, 005 Done + wontdo duplicates of CR-159..CR-161; 003, 004 Done) via the CR-1016 driver from af68048; the devcontainer clones and mounts ../dev with BACKLOG_CWD, AGENTS.md imports the org files then CONTRIBUTING.md, CONTRIBUTING.md opens with the org-guide link, and dev-docs/issues/, bin/issues/, and dev-docs/roadmap.md are removed (demo PR #6). Verified by migrate.verify ok on the real run, a 0-broken relative-link scan, and a host rebuild from main: the container starts, backlog task list works, and /memory lists ORG-AGENTS.md and both CONTRIBUTING.md files. Notes triaged: the duplicate-range note dropped (no number repeats), the broken-link note dropped (scan clean), the hard-coded safe.directory fixed here and filed for plcc-ng as CR-1017 and for languages-ng as CR-1018.
+<!-- SECTION:FINAL_SUMMARY:END -->
