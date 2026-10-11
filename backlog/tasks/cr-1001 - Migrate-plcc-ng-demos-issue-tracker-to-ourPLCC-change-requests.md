@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-09 01:55'
-updated_date: '2026-10-11 18:11'
+updated_date: '2026-10-11 18:24'
 labels: []
 milestone: m-0
 dependencies:
@@ -26,8 +26,8 @@ plcc-ng-demo keeps a 5-issue copy of the old plcc-ng tracker. Design: plcc-ng de
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Legacy issues converted at offset +800 (CR-8xx)
-- [ ] #2 plcc-ng-demo's devcontainer, AGENTS.md, and CONTRIBUTING.md follow plcc-ng's layout: the devcontainer clones and mounts ../dev at /workspaces/dev with BACKLOG_CWD set, AGENTS.md imports ../dev/ORG-AGENTS.md, ../dev/CONTRIBUTING.md, then CONTRIBUTING.md, and CONTRIBUTING.md opens with the link to the org developer guide; its old tracker is removed
+- [x] #1 Legacy issues converted at offset +800 (CR-8xx)
+- [x] #2 plcc-ng-demo's devcontainer, AGENTS.md, and CONTRIBUTING.md follow plcc-ng's layout: the devcontainer clones and mounts ../dev at /workspaces/dev with BACKLOG_CWD set, AGENTS.md imports ../dev/ORG-AGENTS.md, ../dev/CONTRIBUTING.md, then CONTRIBUTING.md, and CONTRIBUTING.md opens with the link to the org developer guide; its old tracker is removed
 <!-- AC:END -->
 
 ## Implementation Notes
