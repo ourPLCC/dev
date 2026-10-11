@@ -1,9 +1,11 @@
 ---
 id: CR-1016
 title: migrate converts plcc-ng-demo's legacy issues
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@StoneyJackson'
 created_date: '2026-10-11 16:08'
+updated_date: '2026-10-11 16:08'
 labels: []
 dependencies:
   - CR-1013
