@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-09 12:36'
-updated_date: '2026-10-11 19:06'
+updated_date: '2026-10-11 19:21'
 labels: []
 milestone: m-0
 dependencies:
@@ -37,3 +37,9 @@ Carry over from plcc-ng: give the ~/.claude named volume a per-repo name (not pl
 - [ ] #5 No document says this repo's own devcontainer works in Codespaces
 - [ ] #6 .gitignore ignores .plans/, .claude/settings.json allows backlog, and bash scripts/reuse.sh lint passes
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Discovered during plan execution (final review, all shared with plcc-ng-demo's setup; triage at close): (1) bin/install/claude-imports.bash leaves ~/.claude.json.XXXXXX behind if ~/.claude.json is malformed - add trap 'rm -f "$tmp"' EXIT in both repos or neither. (2) ${containerWorkspaceFolder} is unquoted in postCreateCommand; a host folder name with a space breaks container creation. (3) Opening a git worktree in the devcontainer may fail at git -C status (host .git path) and clone a second ../dev beside the worktree. (4) Unverified until host rebuild: jq present in base:ubuntu; claude-code feature installs after node.
+<!-- SECTION:NOTES:END -->
