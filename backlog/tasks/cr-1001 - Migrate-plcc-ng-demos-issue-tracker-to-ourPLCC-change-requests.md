@@ -1,10 +1,11 @@
 ---
 id: CR-1001
 title: Migrate plcc-ng-demo's issue tracker to ourPLCC/dev
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@StoneyJackson'
 created_date: '2026-10-09 01:55'
-updated_date: '2026-10-11 15:41'
+updated_date: '2026-10-11 16:02'
 labels: []
 milestone: m-0
 dependencies:
