@@ -233,8 +233,11 @@ and allow `Bash(backlog:*)` in `.claude/settings.json`.
   and `bin/check.py` are clean.
 - The report lists type mappings, duplicates, won't-do issues, drafts,
   defaulted `#N` references, and link findings.
-- In languages-ng after switch-over, `grep -rn 'dev-docs/issues'` outside
-  `.git` finds nothing.
+- In languages-ng after switch-over, `grep -rn 'dev-docs/issues'` finds
+  nothing outside `.git` and the frozen `dev-docs/plans/`,
+  `dev-docs/specs/`, and `dev-docs/reviews/`. Frozen documents get
+  link-only edits (above), so their plain-text mentions of old paths and
+  commands stay, as plcc-ng's do.
 
 ## Rejected alternatives
 
