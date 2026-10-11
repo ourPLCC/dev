@@ -160,7 +160,7 @@ class ConvertTest(LanguagesNgTestCase):
         disk = self.read("tasks", "cr-531 - Disk.md")
         self.assertIn("status: In Progress", disk)
         self.assertIn("project: languages-ng", disk)
-        self.assertIn("### Summary\n\nDisk fills.\n\nUnlike CR-187, see CR-512.", disk)
+        self.assertIn("### Summary\n\nDisk fills.\n\n### Description\n\nUnlike CR-187, see CR-512.", disk)
         self.assertIn("Migrated from languages-ng #031.\n<!-- SECTION:DESCRIPTION:END -->", disk)
         help_ = self.read("completed", "cr-543 - Help.md")
         self.assertIn("  - wontdo", help_)

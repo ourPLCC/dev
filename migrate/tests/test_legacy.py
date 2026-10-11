@@ -150,13 +150,18 @@ class FrontmatterIssueTest(unittest.TestCase):
         self.assertEqual(issue.status_note, "")
         self.assertEqual(issue.rel_path, "dev-docs/issues/038-follow-set.md")
 
-    def test_summary_leads_and_template_comment_is_dropped(self):
+    def test_summary_leads_and_description_gets_its_own_heading(self):
         issue = self.parse()
-        self.assertEqual(issue.preamble, "### Summary\n\nOne paragraph.")
-        self.assertEqual([heading for heading, _ in issue.sections], ["Description", "Notes"])
-        self.assertIn("## Summary", issue.sections[0][1])
+        self.assertEqual(issue.preamble,
+                         "### Summary\n\nOne paragraph.\n\n### Description\n\n"
+                         "It breaks.\n\n```text\n## Summary\n```")
+        self.assertEqual([heading for heading, _ in issue.sections], ["Notes"])
         everything = issue.preamble + "".join(body for _, body in issue.sections)
         self.assertNotIn("Classify", everything)
+
+    def test_without_summary_description_stays_unheaded(self):
+        issue = self.parse(LN_SAMPLE.replace("One paragraph.\n", ""))
+        self.assertEqual([heading for heading, _ in issue.sections], ["Description", "Notes"])
 
     def test_empty_closed_means_open(self):
         self.assertFalse(self.parse(LN_SAMPLE.replace("closed: 2026-08-12", "closed:")).closed)

@@ -119,6 +119,11 @@ def parse_frontmatter_issue(path, repo_root):
     summaries = [text for heading, text in sections if heading.lower() == "summary" and text.strip()]
     lead = [preamble] if preamble.strip() else []
     lead += [f"### Summary\n\n{demote_headings(summary.strip())}" for summary in summaries]
+    if summaries:
+        # Under a Summary, the description needs its own heading or it reads as part of the summary.
+        lead += [f"### Description\n\n{text.strip()}" for heading, text in sections
+                 if heading.lower() == "description" and text.strip()]
+        sections = tuple((h, b) for h, b in sections if h.lower() != "description")
     return LegacyIssue(
         number=int(file_match.group(1)),
         slug=file_match.group(2),
