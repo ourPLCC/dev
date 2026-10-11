@@ -38,6 +38,20 @@ class RepoLinksTest(unittest.TestCase):
         self.assertTrue(changed)
         self.assertIn("[#160]", self.spec.read_text())
 
+    def test_rewrite_repo_for_languages_ng(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            (repo / "dev-docs" / "issues").mkdir(parents=True)
+            (repo / "dev-docs" / "issues" / "012-ci.md").write_text(
+                "---\ntype: chore\ntarget: this repo\nopened: 2026-07-29\nclosed:\n---\n\n"
+                "# 012 - CI\n\n## Description\n\nC.\n")
+            (repo / "dev-docs" / "specs").mkdir()
+            spec = repo / "dev-docs" / "specs" / "s.md"
+            spec.write_text("Issue: [#12](../issues/012-ci.md)\n")
+            changed, _ = repo_links.rewrite_repo(repo, "languages-ng")
+            self.assertEqual(changed, ["dev-docs/specs/s.md"])
+            self.assertEqual(spec.read_text(), "Issue: CR-512\n")
+
 
 if __name__ == "__main__":
     unittest.main()

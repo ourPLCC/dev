@@ -61,6 +61,10 @@ def build_refs(issues, ids):
     return refs
 
 
+def issue_refs(issues):
+    return build_refs(issues, assign_ids(issues)[0])
+
+
 def _stem(issue):
     return posixpath.splitext(posixpath.basename(issue.rel_path))[0]
 
