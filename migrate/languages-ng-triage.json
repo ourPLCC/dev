@@ -1,0 +1,120 @@
+{
+  "open": {
+    "16": {
+      "as": "cr",
+      "reason": "spec"
+    },
+    "19": {
+      "as": "cr",
+      "reason": "spec"
+    },
+    "20": {
+      "as": "wontdo",
+      "summary": "Obsolete: languages-ng's file-based tracker was retired.",
+      "reason": "spec"
+    },
+    "27": {
+      "as": "cr",
+      "reason": "spec"
+    },
+    "28": {
+      "as": "cr",
+      "reason": "spec"
+    },
+    "33": {
+      "as": "cr",
+      "reason": "spec"
+    },
+    "39": {
+      "as": "cr",
+      "reason": "spec"
+    },
+    "40": {
+      "as": "cr",
+      "reason": "spec"
+    },
+    "41": {
+      "as": "cr",
+      "reason": "spec"
+    },
+    "42": {
+      "as": "draft",
+      "reason": "spec"
+    },
+    "43": {
+      "as": "wontdo",
+      "summary": "Obsolete: languages-ng's file-based tracker was retired.",
+      "reason": "spec"
+    },
+    "44": {
+      "as": "cr",
+      "reason": "spec"
+    },
+    "46": {
+      "as": "cr",
+      "status": "In Progress",
+      "reason": "spec"
+    },
+    "50": {
+      "as": "wontdo",
+      "summary": "Obsolete: languages-ng's file-based tracker was retired.",
+      "reason": "spec"
+    },
+    "51": {
+      "as": "wontdo",
+      "summary": "Obsolete: languages-ng's file-based tracker was retired.",
+      "reason": "spec"
+    },
+    "53": {
+      "as": "wontdo",
+      "summary": "Obsolete: languages-ng's file-based tracker was retired.",
+      "reason": "spec"
+    }
+  },
+  "duplicates": {
+    "3": 162,
+    "4": 163,
+    "6": 164,
+    "10": 174,
+    "22": 185,
+    "36": 186,
+    "37": 187,
+    "38": 188
+  },
+  "references": {
+    "18": {
+      "#3": "#3"
+    },
+    "22": {
+      "#8": "CR-8",
+      "#185": "CR-185"
+    },
+    "36": {
+      "#186": "CR-186",
+      "#187": "CR-187"
+    },
+    "38": {
+      "#170": "CR-170"
+    },
+    "48": {
+      "#12": "#12",
+      "#13": "#13",
+      "#14": "#14",
+      "#17": "#17",
+      "#18": "#18",
+      "#19": "#19",
+      "#24": "#24",
+      "#26": "#26",
+      "#170": "#170"
+    },
+    "52": {
+      "#185": "CR-185",
+      "#186": "CR-186",
+      "#187": "CR-187",
+      "#189": "CR-189"
+    },
+    "53": {
+      "#36": "#36"
+    }
+  }
+}
