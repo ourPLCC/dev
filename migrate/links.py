@@ -5,7 +5,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 ISSUE_DIRS = ("dev-docs/issues", "dev-docs/issues/done", "docs/issues", "docs/issues/done")
-RETIRED = ("dev-docs/issues", "dev-docs/roadmap.md", "dev-docs/issue-conventions.md", "docs/issues")
+RETIRED = ("dev-docs/issues", "dev-docs/roadmap.md", "dev-docs/issue-conventions.md", "docs/issues",
+           "bin/issues")
 ISSUE_FILE_RE = re.compile(r"^(\d{1,3})-(.+)\.md$")
 TOKEN_RE = re.compile(
     r"(?P<wiki>\[\[(?P<wnum>\d{1,3})-(?P<wslug>[^\]\s]+)\]\])"
@@ -13,9 +14,10 @@ TOKEN_RE = re.compile(
     r"|(?<![\w/&#])#0*(?P<num>\d{1,3})\b")
 CODE_SPAN_RE = re.compile(r"`+[^`\n]*`+")
 AFTER_QUALIFIER_RE = re.compile(r"\s+in\s+`?ourPLCC/([a-z0-9-]+)`?")
-BEFORE_QUALIFIER_RE = re.compile(r"([a-z0-9-]+)(?:'s)?\s+(?:issue\s+)?$")
+BEFORE_QUALIFIER_RE = re.compile(r"([a-z0-9-]+)`?(?:'s)?\s+(?:issue\s+)?$")
 NUMBER_TEXT_RE = re.compile(r"(?:issue\s+)?#?0*\d+", re.IGNORECASE)
 SCHEME_RE = re.compile(r"^[a-zA-Z][\w+.-]*:")
+PR_BEFORE_RE = re.compile(r"\b(?:PR|pull request)\s+$", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -26,12 +28,18 @@ class IssueRef:
 
 @dataclass
 class LinkContext:
+    """Where links resolve. `references` None keeps plcc-ng's rule for a bare #N;
+    a dict switches on languages-ng's, deciding unqualified #N as {source: {"#N": text}}."""
     repo: str
     repo_root: Path
     issues: dict
     other_offsets: dict
     github: str
     findings: list = field(default_factory=list)
+    references: dict = None
+    source: str = ""
+    defaulted: list = field(default_factory=list)
+    unresolved: list = field(default_factory=list)
 
     def cr_for(self, number, slug, where):
         refs = self.issues.get(number, [])
@@ -115,6 +123,8 @@ def _wiki(m, ctx):
 
 def _bare(m, chunk, ctx):
     number = int(m.group("num"))
+    if ctx.references is not None and PR_BEFORE_RE.search(chunk[max(0, m.start() - 20):m.start()]):
+        return f"[#{number}]({ctx.github}/pull/{number})"
     repo = None
     after = AFTER_QUALIFIER_RE.match(chunk, m.end())
     if after:
@@ -131,9 +141,25 @@ def _bare(m, chunk, ctx):
         ctx.findings.append(f"mention of {repo} #{number} left as text (no legacy tracker)")
         return m.group(0)
     cr = ctx.cr_for(number, None, f"#{number}")
+    if ctx.references is not None:
+        return _decide(m, chunk, ctx, number, cr)
     if cr is not None:
         return f"CR-{cr}"
     return f"[#{number}]({ctx.github}/issues/{number})"
+
+
+def _decide(m, chunk, ctx, number, cr):
+    """languages-ng's unqualified #N: a triage decision, else its own issue, else reported."""
+    token = f"#{number}"
+    decision = ctx.references.get(ctx.source, {}).get(token)
+    if decision is not None:
+        return decision
+    if cr is not None:
+        ctx.defaulted.append(f"{ctx.source}: {token} -> CR-{cr}")
+        return f"CR-{cr}"
+    context = " ".join(chunk[max(0, m.start() - 60):m.end() + 30].split())
+    ctx.unresolved.append(f'{ctx.source}: {token} in "{context}"')
+    return m.group(0)
 
 
 def _process(chunk, file_dir, ctx, full):
