@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-09 01:55'
-updated_date: '2026-10-11 01:41'
+updated_date: '2026-10-11 13:56'
 labels: []
 milestone: m-0
 dependencies:
@@ -49,4 +49,6 @@ Notes for whoever migrates languages-ng:
 Correction to the _remove_previous caveat above: the provenance line ends the description section (before SECTION:DESCRIPTION:END), not the file. Tracked as CR-1006.
 
 From CR-1005: assign_ids now takes dup_offset and dup_range. The ID table reserves no duplicate-number range for languages-ng; if its legacy numbers repeat, pick a range inside CR-501..CR-699 and record it in dev-docs/tracker.md.
+
+From CR-1015 (merged): a provisional triage file and the smoke-run report are in /workspaces/dev/.plans/cr-1000/ (gitignored, local only). (1) Issue 048's bare #12 in 'everything from #12 up resolves to nothing' means GitHub numbers, not issue 12; it was defaulted to CR-512, so add a references entry for 48 that leaves it as #12. (2) At the freeze re-run, check for issues filed since the dry run with target: ourPLCC/plcc-ng; the tool does not check that they appear in duplicates and would convert them as ordinary plcc-ng CRs.
 <!-- SECTION:NOTES:END -->
