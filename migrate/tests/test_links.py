@@ -158,7 +158,7 @@ class LanguagesNgReferencesTest(unittest.TestCase):
 
     def test_unqualified_local_number_defaults_to_the_issue_and_is_listed(self):
         self.assertEqual(self.body("as #31 showed"), "as CR-531 showed")
-        self.assertEqual(self.ctx.defaulted, ["40: #31 -> CR-531"])
+        self.assertEqual(self.ctx.defaulted, ['40: #31 -> CR-531 in "as #31 showed"'])
         self.assertEqual(self.ctx.unresolved, [])
 
     def test_unqualified_unknown_number_is_left_and_listed_with_context(self):

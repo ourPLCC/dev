@@ -154,10 +154,10 @@ def _decide(m, chunk, ctx, number, cr):
     decision = ctx.references.get(ctx.source, {}).get(token)
     if decision is not None:
         return decision
-    if cr is not None:
-        ctx.defaulted.append(f"{ctx.source}: {token} -> CR-{cr}")
-        return f"CR-{cr}"
     context = " ".join(chunk[max(0, m.start() - 60):m.end() + 30].split())
+    if cr is not None:
+        ctx.defaulted.append(f'{ctx.source}: {token} -> CR-{cr} in "{context}"')
+        return f"CR-{cr}"
     ctx.unresolved.append(f'{ctx.source}: {token} in "{context}"')
     return m.group(0)
 
