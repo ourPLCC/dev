@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-09 01:55'
-updated_date: '2026-10-11 16:09'
+updated_date: '2026-10-11 18:11'
 labels: []
 milestone: m-0
 dependencies:
@@ -36,4 +36,6 @@ plcc-ng-demo keeps a 5-issue copy of the old plcc-ng tracker. Design: plcc-ng de
 From CR-1005: assign_ids now takes dup_offset and dup_range. The ID table reserves no duplicate-number range for plcc-ng-demo; if its legacy numbers repeat, pick a range inside CR-801..CR-899 and record it in dev-docs/tracker.md.
 
 From CR-1000: after the switch-over, scan the code repo for broken relative Markdown links. migrate.repo_links only unlinks the tracker's own files, so links to other files the switch-over deletes (languages-ng's CLAUDE.md and its bin/tests/issues-*.bats) were left dangling until review caught them.
+
+From PR #6 review (Copilot): containerEnv's safe.directory for the repo itself was hard-coded (/workspaces/plcc-ng-demo) while postCreateCommand uses ${containerWorkspaceFolder}; a renamed checkout would fail the git status assertion. Fixed here. plcc-ng and languages-ng hard-code the same value (/workspaces/plcc-ng, /workspaces/languages-ng) and could take the same fix.
 <!-- SECTION:NOTES:END -->
