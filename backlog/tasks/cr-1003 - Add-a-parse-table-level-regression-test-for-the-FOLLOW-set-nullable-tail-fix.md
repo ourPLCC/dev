@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-09 11:31'
-updated_date: '2026-10-12 18:26'
+updated_date: '2026-10-12 18:29'
 labels: []
 dependencies: []
 type: test
@@ -21,6 +21,6 @@ CR-188's regression test guards the FOLLOW-set computation directly (`test_follo
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 A test in build_parsing_table_test.py uses a grammar shaped like S -> A B C, A -> a | ε, B -> b | ε, C -> c
-- [ ] #2 It asserts that each empty alternative has a parse-table cell for every token in its FOLLOW set
+- [ ] #2 It asserts, against expected cells written out in the test (not computed FOLLOW sets), that each empty alternative has a cell for every token in its FOLLOW set
 - [ ] #3 The test fails if the pre-CR-188 single-symbol lookahead is restored
 <!-- AC:END -->
