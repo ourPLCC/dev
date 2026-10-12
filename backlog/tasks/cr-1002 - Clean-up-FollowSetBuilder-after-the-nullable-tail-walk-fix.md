@@ -3,9 +3,9 @@ id: CR-1002
 title: Clean up FollowSetBuilder after the nullable-tail walk fix
 status: In Progress
 assignee:
-  - '@stoney'
+  - '@StoneyJackson'
 created_date: '2026-10-09 11:31'
-updated_date: '2026-10-12 21:24'
+updated_date: '2026-10-12 21:26'
 labels: []
 dependencies:
   - CR-1003
