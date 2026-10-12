@@ -1,9 +1,11 @@
 ---
 id: CR-546
-title: 'Every GitHub Release gets an empty body'
+title: Every GitHub Release gets an empty body
 status: In Progress
-assignee: []
+assignee:
+  - '@StoneyJackson'
 created_date: '2026-08-13'
+updated_date: '2026-10-12 12:31'
 labels: []
 dependencies: []
 type: chore
@@ -58,9 +60,9 @@ implements the `generateNotes` step, `nextRelease.notes` comes back empty,
 and `@semantic-release/github` creates the Release with an empty body.
 
 The tag, the version number, and the Release entry itself are all correct.
-Only the notes are missing — which is why this has gone unnoticed: the
-last release was `v1.0.2` on 2024-03-29, and the releases before it were
-just as empty.
+Only the notes are missing — which is why this went unnoticed. The only
+release on the remote, `v1.0.0` (2026-08-13), was cut from `9e4dc6a`,
+before the fix, and its body is empty.
 
 Dropping `@semantic-release/npm` from the list is deliberate and correct —
 this repository publishes no npm package. Dropping the notes generator was
@@ -94,11 +96,15 @@ observed the empty `generateNotes` output directly. Deliberately left out
 of that branch: `.releaserc.yaml` was off-limits under its plan's
 constraints, and the change is independent of restoring the pipeline.
 
-Worth doing before the next release, which will be a large one —
-`v1.0.2..main` holds roughly 50 `feat:` and 8 `fix:` commits covering the
-whole plcc-ng migration. That is exactly the release whose notes are worth
-having, and semantic-release will not regenerate them for a tag it has
-already cut.
+The large release this was meant to precede has already been cut:
+`v1.0.0` covers the whole plcc-ng migration and was cut before the fix
+landed. semantic-release will not regenerate notes for an existing tag,
+and that body is being left empty.
 
 Migrated from languages-ng #046.
 <!-- SECTION:DESCRIPTION:END -->
+
+## Acceptance Criteria
+<!-- AC:BEGIN -->
+- [ ] #1 The first GitHub Release cut after PR #12 merged has a non-empty body, grouped by conventionalcommits types.
+<!-- AC:END -->
