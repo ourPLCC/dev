@@ -1,10 +1,11 @@
 ---
 id: CR-1003
 title: Add a parse-table-level regression test for the FOLLOW-set nullable-tail fix
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@StoneyJackson'
 created_date: '2026-10-09 11:31'
-updated_date: '2026-10-12 18:24'
+updated_date: '2026-10-12 18:26'
 labels: []
 dependencies: []
 type: test
