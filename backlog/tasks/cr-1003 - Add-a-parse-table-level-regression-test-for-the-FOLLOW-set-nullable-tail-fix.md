@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-09 11:31'
-updated_date: '2026-10-12 18:29'
+updated_date: '2026-10-12 18:35'
 labels: []
 dependencies: []
 type: test
@@ -24,3 +24,9 @@ CR-188's regression test guards the FOLLOW-set computation directly (`test_follo
 - [ ] #2 It asserts, against expected cells written out in the test (not computed FOLLOW sets), that each empty alternative has a cell for every token in its FOLLOW set
 - [ ] #3 The test fails if the pre-CR-188 single-symbol lookahead is restored
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+AC #3 verified by hand on branch cr-1003-parse-table-follow-regression-test (90994d9b): with the pre-CR-188 single-symbol lookahead restored in build_follow_sets.py, the new test fails only on getCell('A', 'c') ([] == [()]); restored code passes. Full unit tier: 1265 passed, 1 skipped.
+<!-- SECTION:NOTES:END -->
