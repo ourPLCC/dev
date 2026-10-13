@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-13 13:53'
-updated_date: '2026-10-13 17:47'
+updated_date: '2026-10-13 18:16'
 labels: []
 dependencies: []
 references:
@@ -35,4 +35,6 @@ Devcontainers are getting push access through a fine-grained token that any agen
 
 <!-- SECTION:NOTES:BEGIN -->
 dev's .github/workflows/check.yml has no permissions block (found 2026-10-13 while correcting the permissions spec). Out of scope here: CR-1023 covers plcc-ng only, and no existing CR covers dev's workflows. Triage at close.
+
+Cross-repo gap (found 2026-10-13): every ourPLCC repo that releases uses the same ourPLCC Release Bot App, each with its own private key in repository secrets. Any key mints installation tokens for every repo the App is installed on, so a branch workflow in another repo that can read its repository-level key can get Contents write on plcc-ng and bypass plcc-ng's rulesets (the App is their bypass actor). plcc-ng is protected only once every repo holding a key has moved it into a release environment limited to main and v* tags. Container push access (CR-1027 and dependents) should wait for that. Triage at close: likely a check before CR-1027, or a line in each repo's CR.
 <!-- SECTION:NOTES:END -->
