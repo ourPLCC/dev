@@ -1,11 +1,11 @@
 ---
 id: CR-1025
 title: Apply GitHub-side protections for container push access
-status: In Progress
+status: Done
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-13 20:30'
+updated_date: '2026-10-13 20:33'
 labels: []
 dependencies: []
 references:
@@ -44,4 +44,12 @@ Update (2026-10-13): the maintainer removed the Strict build required status che
 AC 1 evidence (2026-10-13, public rules API): ruleset 17903860 'default branch' on main applies deletion, non_fast_forward, pull_request (0 approvals), bypass: the ourPLCC Release Bot and alainkaegi; ruleset 25029552 'gh-pages' applies creation, update, deletion, non_fast_forward; ruleset 25029597 'tags' (all tags) applies creation, update, deletion, non_fast_forward; gh-pages and tags have only the Release Bot as bypass. All active.
 
 Triage (2026-10-13): the External links failure is filed as a draft. The Alain bypass is recorded in the permissions spec on dev branch cr-1025-course-materials-bypass (0fc4e7b); close this CR once that merges.
+
+The Alain bypass is recorded in the permissions spec: dev PR #17 (merge 5301844).
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+course-materials-ng now pushes gh-pages only with the ourPLCC Release Bot's token: deploy.yml and release.yml run in a release environment limited to main, mint the App's token there, and drop GITHUB_TOKEN to contents: read (PR #68). Rulesets: main requires a pull request and blocks force-push and deletion; gh-pages and all tags block every push. The Release Bot bypasses all three, and on main so does the maintainer, Alain Kägi, who keeps pushing to main directly; the permissions spec records that exception (dev PR #17). The first post-merge deploy failed on a misnamed secret (APP_ID) and passed after it was re-added as RELEASE_APP_ID. The External links check failing on sites that block bots is filed as a draft.
+<!-- SECTION:FINAL_SUMMARY:END -->
