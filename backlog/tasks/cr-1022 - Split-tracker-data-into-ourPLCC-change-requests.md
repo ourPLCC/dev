@@ -5,11 +5,12 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:53'
-updated_date: '2026-10-13 14:35'
+updated_date: '2026-10-13 14:37'
 labels: []
 dependencies: []
 references:
   - ../../dev-docs/specs/2026-10-13-devcontainer-permissions-design.md
+  - ../../dev-docs/specs/2026-10-13-change-requests-split-design.md
 type: chore
 project: dev
 ordinal: 14000
@@ -24,9 +25,9 @@ Containers are getting push access, and tracker changes are pushed straight to d
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 A spec in dev-docs/specs/ defines the split: what moves, how backlog/ history moves, how CR references whose relative depth changes are rewritten, and which old links break when the change-requests name stops redirecting to dev
-- [ ] #2 ourPLCC/change-requests holds backlog/ with its history and no hooks, scripts, or agent instructions
-- [ ] #3 dev no longer holds backlog/, and bin/check.py and dev's CI check change-requests
+- [ ] #2 ourPLCC/change-requests holds backlog/ with its history, a README, and a .gitattributes, and no hooks, scripts, workflows, or agent instructions; every relative reference that pointed into dev resolves
+- [ ] #3 dev no longer holds backlog/; bin/check.py requires --root, the hooks check the repo that runs them, and dev's CI checks change-requests on every push and pull request
 - [ ] #4 Rulesets: dev's main requires a pull request and blocks force-push and deletion; change-requests' main blocks force-push and deletion; all tags are blocked in both
 - [ ] #5 change-requests' README says it holds work we committed to, while GitHub Issues hold conversations
-- [ ] #6 The tracker stays usable from every repo's container throughout the transition, before and after that repo's devcontainer CR
+- [ ] #6 The cutover follows the spec's sequence, and the tracker is unavailable only between the freeze and the first rebuilt devcontainer listing CRs from change-requests
 <!-- AC:END -->
