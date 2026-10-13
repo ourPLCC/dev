@@ -71,6 +71,8 @@ def _as_list(value):
 def check(root, pre_push=False):
     root = Path(root)
     backlog = root / "backlog"
+    if not (backlog / "config.yml").is_file():
+        return [f"{root}: no backlog/config.yml; --root must name the tracker repo"]
     config = load_config(backlog / "config.yml")
     projects = _as_list(config.get("projects"))
     types = _as_list(config.get("types"))
