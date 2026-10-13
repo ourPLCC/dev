@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-13 19:14'
+updated_date: '2026-10-13 19:24'
 labels: []
 dependencies: []
 references:
@@ -35,4 +35,6 @@ Devcontainers are getting push access through a fine-grained token that any agen
 From CR-1023's triage (2026-10-13): the shared ourPLCC Release Bot App is installed on plcc-ng and plcc-ng-devcontainer, so the spec's 'own App (APP_ID)' may be this App under another secret name; AC #2 settles which. If it is the shared App, any of its private keys this repo holds in repository secrets mints installation tokens for plcc-ng too, and so bypasses plcc-ng's rulesets (the App is their bypass actor). AC #3 closes that, which is why CR-1027 depends on this CR.
 
 AC 2 (2026-10-13): plcc-ng-devcontainer adopts the shared ourPLCC Release Bot. It already uses it: the Release Bot is the only GitHub App installed on the repo, so its APP_ID and APP_PRIVATE_KEY secrets are the Release Bot's. Keeping one App means one bypass actor for every repo's rulesets. The secret names stay APP_ID and APP_PRIVATE_KEY, to keep the workflow change to adding environment: release.
+
+Post-merge checks (2026-10-13), PR #18 merged as a73966c: Release run 38454274118 minted the App token in the release environment in both plan and release, cut no version (ci: commit), skipped the image builds and publish-images, and republished nothing new for the feature. A manual Check plcc-ng Release run 38454491232 on main minted the token in the release environment and succeeded. Remaining: delete the APP_ID and APP_PRIVATE_KEY repository secrets; set the default branch ruleset's bypass to the Release Bot only; add the All tags ruleset.
 <!-- SECTION:NOTES:END -->
