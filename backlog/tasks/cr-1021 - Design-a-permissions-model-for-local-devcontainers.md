@@ -5,9 +5,11 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-12 18:38'
-updated_date: '2026-10-13 12:36'
+updated_date: '2026-10-13 12:38'
 labels: []
 dependencies: []
+references:
+  - ../../dev-docs/specs/2026-10-13-devcontainer-permissions-design.md
 type: chore
 project: dev
 ordinal: 13000
