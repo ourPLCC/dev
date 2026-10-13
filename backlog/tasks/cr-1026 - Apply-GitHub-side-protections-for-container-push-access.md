@@ -4,6 +4,7 @@ title: Apply GitHub-side protections for container push access
 status: To Do
 assignee: []
 created_date: '2026-10-13 13:54'
+updated_date: '2026-10-13 18:49'
 labels: []
 dependencies: []
 references:
@@ -26,3 +27,9 @@ Devcontainers are getting push access through a fine-grained token that any agen
 - [ ] #3 The App's secrets live in a release environment limited to main and release tags
 - [ ] #4 A release run after the change publishes its images and feature
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+From CR-1023's triage (2026-10-13): the shared ourPLCC Release Bot App is installed on plcc-ng and plcc-ng-devcontainer, so the spec's 'own App (APP_ID)' may be this App under another secret name; AC #2 settles which. If it is the shared App, any of its private keys this repo holds in repository secrets mints installation tokens for plcc-ng too, and so bypasses plcc-ng's rulesets (the App is their bypass actor). AC #3 closes that, which is why CR-1027 depends on this CR.
+<!-- SECTION:NOTES:END -->
