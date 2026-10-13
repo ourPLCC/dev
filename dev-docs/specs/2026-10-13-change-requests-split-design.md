@@ -110,8 +110,11 @@ only, run against the filtered clone with `dev`'s working tree as reference:
 - It prints each change and each skipped `../../` target, and exits non-zero
   if it would change a file outside `backlog/`.
 
-On `dev` as of 2026-10-13 it changes 22 targets: 18 spec references
-(`../../dev-docs/specs/…`) and 4 links to `../../migrate/…`. It skips two
+A `#fragment` is kept but ignored when checking that the target exists.
+
+On `dev` as of 2026-10-13 it changes 23 targets: 18 spec references
+(`../../dev-docs/specs/…`), 4 links to `../../migrate/…`, and 1 to
+`../../.github/workflows/check.yml`. It skips two
 links to `../../TEMPLATE.md`, which came from plcc-ng's old in-repo tracker and
 were already broken. A different count at cutover means the tree changed;
 check the report before committing.
