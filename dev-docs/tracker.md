@@ -14,17 +14,21 @@ this guide wins.
 
 ## Setup
 
-- Keep the ourPLCC repos as siblings on your host, with this repo cloned
-  beside them as `dev/`. Each code repo's devcontainer clones it there if
-  missing, bind-mounts it at `/workspaces/dev`, sets
-  `BACKLOG_CWD=/workspaces/dev`, and installs the pinned
-  `backlog` CLI.
-- Commit inside the container; **push from the host**. Backlog.md commits
-  every change automatically (`auto_commit: true`).
+- Each code repo's devcontainer clones this repo into the shared volume
+  `ourplcc-dev`, mounted at `/workspaces/dev`, and the tracker data,
+  [ourPLCC/change-requests](https://github.com/ourPLCC/change-requests),
+  into `ourplcc-change-requests`, mounted at `/workspaces/change-requests`.
+  Every ourPLCC container on a machine shares both. It sets
+  `BACKLOG_CWD=/workspaces/change-requests` and installs the pinned `backlog`
+  CLI, and on start fast-forwards `dev`'s `main` when it is checked out and
+  clean.
+- Commit and push inside the container, with `/workspaces/dev/bin/push.bash`,
+  after every tracker change. Backlog.md commits every change automatically
+  (`auto_commit: true`); the volume is not a backup.
 - Hooks in `.githooks/` run `bin/check.py` (Python 3, standard library) on
-  commit and push; `core.hooksPath` is set by the devcontainer's
-  `initializeCommand`.
-- Hosts: Linux or macOS.
+  commit and push; the devcontainer sets `change-requests`' `core.hooksPath`
+  to `/workspaces/dev/.githooks`, so the hooks come from reviewed code.
+- Hosts: Linux, macOS, or Windows; or a Codespace.
 
 ## Vocabulary
 
@@ -168,11 +172,34 @@ projects before filing.
 
 ## Pushing and collisions
 
-Push from the host. If the push is rejected, `git pull --rebase`, then
-`python3 bin/check.py`. If it reports a duplicate ID (two people allocated the
-same number before either pushed), run `backlog doctor --fix` in a container
-to renumber the unpushed CR, commit, and push. CI runs the same check plus
-`backlog doctor` on every push; it can only alert, so fix problems by revert.
+Push with `/workspaces/dev/bin/push.bash`. It takes a lock that every ourPLCC
+container on the machine shares, fetches, rebases your tracker commits onto
+`origin/main`, runs `bin/check.py --pre-push`, and pushes. It stops without
+pushing, and says why, when:
+
+- `change-requests` has uncommitted changes: commit or discard them.
+- The rebase conflicts: it aborts the rebase and keeps your commits. Run
+  `git pull --rebase` in `/workspaces/change-requests`, resolve, and run it
+  again.
+- `bin/check.py` fails. A duplicate ID means two people allocated the same
+  number before either pushed: run `backlog doctor --fix` to renumber the
+  unpushed CR, commit, and run it again.
+- The push is rejected because another push landed after the fetch: run it
+  again.
+- It waited two minutes for the lock: another push or a container start
+  holds it. Run it again; if it keeps timing out, look for a stuck
+  `bin/push.bash` or `shared-clones.bash` in your other containers.
+
+Do not edit the tracker from another container while a push runs. Backlog.md
+does not take the lock, so its commit can land in the middle of the rebase
+and be dropped.
+
+Locally, every container shares one tracker tree, so one person's sessions
+never allocate the same ID. Two Codespaces, or a Codespace and a local
+container, are two trees and can collide like two people. Nothing on GitHub
+checks a direct push to `change-requests`; the next `bin/push.bash` fails on
+a bad one and names the problem, and `dev`'s CI checks `change-requests` on
+every push to `dev`. Fix problems by revert.
 
 ## Checks (`bin/check.py`)
 
@@ -191,7 +218,9 @@ the project and type rules.
 3. Fold relevant changes into this guide (and, where they touch agent
    rules, into [ORG-AGENTS.md](../ORG-AGENTS.md)) and update the version it
    was checked against — in the same commit.
-4. Rebuild devcontainers to pick up the new version.
+4. Once the change merges, rebuild every ourPLCC container to pick up the new
+   version; each warns on start while its `backlog` differs from
+   `.backlog-version`.
 
 ## Migration tooling
 
@@ -220,8 +249,10 @@ that call `backlog` set `BACKLOG_CWD` to their target explicitly.
 ## Working on the tracker tooling
 
 `bin/check.py` and `migrate/` use only the Python 3 standard library, so the
-checks run on hosts as well as in containers. Run what CI runs
-(`.github/workflows/check.yml`) before pushing a tooling change:
+hooks run in every container without extra installs. Changes to `dev` go
+through a pull request; its `main` takes no direct pushes. In a container,
+run what CI runs (`.github/workflows/check.yml`) before pushing a tooling
+change:
 
 ```bash
 python3 -m unittest discover -s tests -t .
@@ -232,3 +263,6 @@ python3 bin/check.py --pre-push --root /workspaces/change-requests
 
 A new rule in `bin/check.py` gets a test in `tests/test_check.py` and a line
 in [Checks](#checks-bincheckpy) above.
+
+`bin/push.bash`'s tests in `tests/test_push.py` build throwaway repos; change
+them with the script.
