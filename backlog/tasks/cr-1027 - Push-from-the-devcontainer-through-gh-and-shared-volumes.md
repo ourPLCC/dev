@@ -4,6 +4,7 @@ title: Push from the devcontainer through gh and shared volumes
 status: To Do
 assignee: []
 created_date: '2026-10-13 13:54'
+updated_date: '2026-10-13 17:32'
 labels: []
 dependencies:
   - CR-1021
@@ -32,3 +33,9 @@ Nobody can push from inside plcc-ng's devcontainer, so every push happens on the
 - [ ] #6 The spec's Verification checklist passes on a Linux or macOS host, a Windows host, and a new Codespace
 - [ ] #7 The spec's open checks are settled, and the spec is updated where a result contradicts it
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+From CR-1021's final review: bin/install/shared-clones.bash must take the shared lock as flock -o -w 120 /workspaces/dev <command>, never by opening a descriptor in its own shell, or a child that outlives it (git maintenance detached by fetch) keeps the lock. dev's bin/push.bash (dev PR #15) shows the pattern. The spec's new open check, that the lock in one container blocks another container on the same volume, is settled here.
+<!-- SECTION:NOTES:END -->
