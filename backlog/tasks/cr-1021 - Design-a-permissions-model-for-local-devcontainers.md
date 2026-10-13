@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-12 18:38'
-updated_date: '2026-10-13 14:37'
+updated_date: '2026-10-13 17:28'
 labels: []
 dependencies:
   - CR-1022
@@ -41,4 +41,6 @@ What a container may do, with which credentials, and what an agent in it may do 
 
 <!-- SECTION:NOTES:BEGIN -->
 From CR-1022's spec (2026-10-13-change-requests-split-design.md): step 1 of Rollout must not apply dev's main ruleset; nobody bypasses it, so tracker pushes from the host to dev would stop before the split. CR-1022's cutover applies dev's rulesets instead. Also, CR-1022 chose a coordinated cutover (tracker down from freeze until the first rebuilt container), which simplifies Rollout step 5 and the per-contributor migration. Fix the permissions spec in place to match.
+
+Spec amendments and the implementation are both PR'd in dev: cr-1021-reconcile-permissions-spec (against main) and cr-1021-push-from-container (draft, based on cr-1022-check-change-requests; merges in cutover step 6, after the spec PR). Deferred minors from the final review, to triage at close: (1) tracker.md Setup: 'It sets BACKLOG_CWD' has an unclear subject; (2) CONTRIBUTING's token steps could say GitHub adds Metadata read automatically; (3) a command inside push.bash exiting 75 would be reported as a lock timeout. For CR-1027: shared-clones.bash must take the lock as flock -o -w 120 /workspaces/dev, as push.bash does, and the open check that the lock blocks across containers is still open.
 <!-- SECTION:NOTES:END -->
