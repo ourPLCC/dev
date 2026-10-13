@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:53'
-updated_date: '2026-10-13 15:06'
+updated_date: '2026-10-13 15:55'
 labels: []
 dependencies: []
 references:
@@ -24,7 +24,7 @@ Containers are getting push access, and tracker changes are pushed straight to d
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A spec in dev-docs/specs/ defines the split: what moves, how backlog/ history moves, how CR references whose relative depth changes are rewritten, and which old links break when the change-requests name stops redirecting to dev
+- [x] #1 A spec in dev-docs/specs/ defines the split: what moves, how backlog/ history moves, how CR references whose relative depth changes are rewritten, and which old links break when the change-requests name stops redirecting to dev
 - [ ] #2 ourPLCC/change-requests holds backlog/ with its history, a README, and a .gitattributes, and no hooks, scripts, workflows, or agent instructions; every relative reference that pointed into dev resolves
 - [ ] #3 dev no longer holds backlog/; bin/check.py requires --root, the hooks check the repo that runs them, and dev's CI checks change-requests on every push and pull request
 - [ ] #4 Rulesets: dev's main requires a pull request and blocks force-push and deletion; change-requests' main blocks force-push and deletion; all tags are blocked in both
