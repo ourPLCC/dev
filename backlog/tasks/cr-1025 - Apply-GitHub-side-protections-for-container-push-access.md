@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-13 20:26'
+updated_date: '2026-10-13 20:30'
 labels: []
 dependencies: []
 references:
@@ -23,7 +23,7 @@ Devcontainers in ourPLCC are getting push access through a fine-grained token sc
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Rulesets: main requires a pull request and blocks force-push and deletion; gh-pages and all tags block every push; the release App is the only bypass actor
+- [x] #1 Rulesets: main requires a pull request and blocks force-push and deletion; gh-pages and all tags block every push; the release App is the only bypass actor
 - [x] #2 deploy.yml and release.yml push gh-pages with a release App's token in a release environment limited to main
 - [x] #3 A deploy run after the change publishes the dev docs
 <!-- AC:END -->
@@ -40,4 +40,8 @@ Found while here: checks.yml's External links job (lychee) fails on PR #68 becau
 Deviation (2026-10-13, maintainer's decision): Alain (alainkaegi) pushes to main directly, and that workflow stays. So ruleset 17903860 'default branch', now active on main (deletion, non_fast_forward, pull_request with 0 approvals, Strict build status check), has two bypass actors: the ourPLCC Release Bot and alainkaegi, both Always allow. Everyone else, including agents holding other contributors' tokens, must use a PR. Why main still needs protecting here: deploy.yml runs on push to main in the release environment and mints the release App's token, which reaches every repo in the App's installation; an open main would let any token holder run code with it. Residual risk: Alain's own token. The permissions spec says the release Apps are the only bypass actors; it needs a sentence recording this exception. Remaining for AC 1: the gh-pages and tag rulesets.
 
 Update (2026-10-13): the maintainer removed the Strict build required status check from ruleset 17903860; main's rules are now deletion, non_fast_forward, and pull_request (0 approvals).
+
+AC 1 evidence (2026-10-13, public rules API): ruleset 17903860 'default branch' on main applies deletion, non_fast_forward, pull_request (0 approvals), bypass: the ourPLCC Release Bot and alainkaegi; ruleset 25029552 'gh-pages' applies creation, update, deletion, non_fast_forward; ruleset 25029597 'tags' (all tags) applies creation, update, deletion, non_fast_forward; gh-pages and tags have only the Release Bot as bypass. All active.
+
+Triage (2026-10-13): the External links failure is filed as a draft. The Alain bypass is recorded in the permissions spec on dev branch cr-1025-course-materials-bypass (0fc4e7b); close this CR once that merges.
 <!-- SECTION:NOTES:END -->
