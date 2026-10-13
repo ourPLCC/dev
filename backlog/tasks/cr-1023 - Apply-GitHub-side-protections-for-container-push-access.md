@@ -4,6 +4,7 @@ title: Apply GitHub-side protections for container push access
 status: To Do
 assignee: []
 created_date: '2026-10-13 13:53'
+updated_date: '2026-10-13 17:38'
 labels: []
 dependencies: []
 references:
@@ -23,8 +24,8 @@ Devcontainers are getting push access through a fine-grained token that any agen
 <!-- AC:BEGIN -->
 - [ ] #1 Org settings: fine-grained tokens need an owner's approval and last 90 days at most; classic tokens are blocked
 - [ ] #2 Rulesets: main requires a pull request and blocks force-push and deletion; gh-pages and all tags block every push; the release App is the only bypass actor
-- [ ] #3 The release App's secrets live in a release environment limited to main and v* tags; the pypi environment is limited to v* tags and requires the maintainer's approval
-- [ ] #4 docs.yml pushes gh-pages with the release App's token instead of GITHUB_TOKEN
-- [ ] #5 Every workflow declares an explicit, minimal permissions block
-- [ ] #6 A release run after the change publishes to PyPI and deploys docs
+- [ ] #3 docs.yml pushes gh-pages with the release App's token instead of GITHUB_TOKEN
+- [ ] #4 Every workflow declares an explicit, minimal permissions block
+- [ ] #5 A release run after the change publishes to PyPI and deploys docs
+- [ ] #6 The release App's secrets live in a release environment limited to main and v* tags; the pypi environment is limited to main and v* tags and requires the maintainer's approval
 <!-- AC:END -->
