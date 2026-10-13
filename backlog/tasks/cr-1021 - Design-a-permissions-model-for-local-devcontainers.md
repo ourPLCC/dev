@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-12 18:38'
-updated_date: '2026-10-13 12:38'
+updated_date: '2026-10-13 13:50'
 labels: []
 dependencies: []
 references:
@@ -30,4 +30,8 @@ What a container may do, with which credentials, and what an agent in it may do 
 - [ ] #1 A spec in dev-docs/specs/ defines which GitHub operations (at least push and opening a PR) a local devcontainer can perform, separately for a human contributor and for an agent working in it
 - [ ] #2 The spec says how credentials reach the container without being committed to a repo or baked into an image, and how they survive a container rebuild
 - [ ] #3 The tracker guide's "push from the host" rule matches the spec
+- [ ] #4 ORG-AGENTS.md's Limits on autonomy forbids agents merging PRs, running gh auth login/refresh/token, and pushing change-requests other than through bin/push.bash
+- [ ] #5 dev's CONTRIBUTING.md explains working in a devcontainer: creating and approving the token, gh auth login --with-token, what the container cannot do and where to do it, approving PyPI deployments, the Codespaces grant, and the per-contributor migration
+- [ ] #6 dev's bin/push.bash pushes change-requests under flock after fetching, rebasing, and passing bin/check.py --pre-push
+- [ ] #7 dev's .gitattributes starts with * text=auto eol=lf
 <!-- AC:END -->
