@@ -323,8 +323,13 @@ Every devcontainer replaces the host clone and bind mount with two volumes:
   containers created at once do not clone into the same directory. The lock
   is the volume's mount point itself, not a file in it: a file there would
   dirty `dev`'s working tree and be moved aside as a leftover before the
-  clone, and the mount point exists before anything is cloned. For each of
-  the two volumes:
+  clone, and the mount point exists before anything is cloned. Every holder
+  takes it as `flock -o -w 120 /workspaces/dev <command>`, never by opening a
+  descriptor in its own shell: a child that outlives the holder, such as the
+  `git maintenance` a fetch detaches into the background, would inherit that
+  descriptor and keep the lock. `-o` keeps the descriptor in `flock` alone;
+  `-w 120` turns a stuck holder into an error instead of a silent wait. For
+  each of the two volumes:
   - chown it to the container user;
   - if it has no `.git`, or `git rev-parse HEAD` fails in it (an interrupted
     clone), clone the repo into it, moving any leftover aside first.
@@ -343,7 +348,8 @@ Every devcontainer replaces the host clone and bind mount with two volumes:
   `X.Y.Z` version (it is passed to `npm i -g`), the `git status` assertions,
   and the repo's own installs. `postStartCommand` warns when the installed
   `backlog --version` differs from `.backlog-version`.
-- Every image has `python3`, since the hooks run in every container.
+- Every image has `python3`, since the hooks run in every container, and
+  `flock` (util-linux), since every container takes the lock.
 
 **Pushing tracker changes.** Every push of `change-requests` goes through
 `dev`'s `bin/push.bash`. Under the same `flock /workspaces/dev` as the clone,
@@ -367,8 +373,12 @@ volume is not a backup.
 `change-requests` working tree, as with the bind mount, so one person's
 sessions on one machine never allocate the same ID. Backlog.md's auto-commits
 from two containers can still contend for `.git/index.lock`, as they could
-with the bind mount; the lock makes a pull-and-rebase no more dangerous than
-that. Two Codespaces, or a Codespace and a local container, are two trees, so
+with the bind mount. The lock does not cover them: Backlog.md does not take
+it. A tracker edit from another container while `bin/push.bash` rebases can
+land mid-rebase, and the rebase can then drop that commit. The window is a
+second or two; wrapping `backlog` to take the lock is not worth it. Instead
+the tracker guide says not to edit the tracker from another container while a
+push runs. Two Codespaces, or a Codespace and a local container, are two trees, so
 one person can collide with themselves there; `bin/check.py` and
 `backlog doctor --fix` handle it as they handle collisions between people.
 
@@ -539,6 +549,8 @@ contradicts this spec is fixed here, before the spec is frozen.
   `GITHUB_TOKEN` is refreshed. If not, the helper becomes a small script that
   defers to Codespaces' own helper when `$CODESPACES` is set.
 - Codespaces honors `type=volume` mounts under `/workspaces`.
+- `flock /workspaces/dev` in one local container blocks it in another
+  container that mounts the same volume.
 
 ## Out of scope
 
