@@ -5,9 +5,10 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-12 18:38'
-updated_date: '2026-10-13 13:50'
+updated_date: '2026-10-13 13:54'
 labels: []
-dependencies: []
+dependencies:
+  - CR-1022
 references:
   - ../../dev-docs/specs/2026-10-13-devcontainer-permissions-design.md
 type: chore
