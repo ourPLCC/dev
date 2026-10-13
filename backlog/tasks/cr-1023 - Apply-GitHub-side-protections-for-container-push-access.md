@@ -4,7 +4,7 @@ title: Apply GitHub-side protections for container push access
 status: To Do
 assignee: []
 created_date: '2026-10-13 13:53'
-updated_date: '2026-10-13 17:38'
+updated_date: '2026-10-13 17:45'
 labels: []
 dependencies: []
 references:
@@ -29,3 +29,9 @@ Devcontainers are getting push access through a fine-grained token that any agen
 - [ ] #5 Every workflow declares an explicit, minimal permissions block
 - [ ] #6 A release run after the change publishes to PyPI and deploys docs
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+dev's .github/workflows/check.yml has no permissions block (found 2026-10-13 while correcting the permissions spec). Out of scope here: CR-1023 covers plcc-ng only, and no existing CR covers dev's workflows. Triage at close.
+<!-- SECTION:NOTES:END -->
