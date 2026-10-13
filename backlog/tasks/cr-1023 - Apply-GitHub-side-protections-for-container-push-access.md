@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-13 13:53'
-updated_date: '2026-10-13 18:49'
+updated_date: '2026-10-13 18:52'
 labels: []
 dependencies: []
 references:
@@ -29,7 +29,7 @@ Devcontainers are getting push access through a fine-grained token that any agen
 - [x] #4 docs.yml pushes gh-pages with the release App's token instead of GITHUB_TOKEN
 - [x] #5 Every workflow declares an explicit, minimal permissions block
 - [ ] #6 A release run after the change publishes to PyPI and deploys docs
-- [ ] #7 plcc-devcontainer is archived, so the release App key in its secrets can no longer run in a workflow
+- [x] #7 plcc-devcontainer is archived, so the release App key in its secrets can no longer run in a workflow
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -48,4 +48,6 @@ AC 1 evidence (2026-10-13, org settings UI): fine-grained tokens allowed with ad
 AC 3 evidence (2026-10-13): plcc-ng's release environment allows main and v* and holds RELEASE_APP_ID and RELEASE_APP_PRIVATE_KEY; the repository-level copies are deleted. The pypi environment allows main and v*.*.* (narrower than the spec's v*, matching all 127 release tags), requires the maintainer's approval, allows self-review, and disallows admin bypass. Release run 38446530070 and Docs run 38446530069 drew the App's secrets from the release environment.
 
 Triage (2026-10-13): the check.yml gap is folded into CR-1022 as a new AC. The plcc-ng-devcontainer half of the cross-repo key gap belongs to CR-1026 (AC #3), noted there; CR-1027 now depends on CR-1026. The plcc-devcontainer half is AC #7 here.
+
+AC 7 evidence: ourPLCC/plcc-devcontainer is archived (public API, 2026-10-13).
 <!-- SECTION:NOTES:END -->
