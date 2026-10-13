@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-12 18:38'
-updated_date: '2026-10-13 13:54'
+updated_date: '2026-10-13 14:37'
 labels: []
 dependencies:
   - CR-1022
@@ -36,3 +36,9 @@ What a container may do, with which credentials, and what an agent in it may do 
 - [ ] #6 dev's bin/push.bash pushes change-requests under flock after fetching, rebasing, and passing bin/check.py --pre-push
 - [ ] #7 dev's .gitattributes starts with * text=auto eol=lf
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+From CR-1022's spec (2026-10-13-change-requests-split-design.md): step 1 of Rollout must not apply dev's main ruleset; nobody bypasses it, so tracker pushes from the host to dev would stop before the split. CR-1022's cutover applies dev's rulesets instead. Also, CR-1022 chose a coordinated cutover (tracker down from freeze until the first rebuilt container), which simplifies Rollout step 5 and the per-contributor migration. Fix the permissions spec in place to match.
+<!-- SECTION:NOTES:END -->
