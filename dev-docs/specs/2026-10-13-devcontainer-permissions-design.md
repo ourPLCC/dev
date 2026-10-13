@@ -173,8 +173,11 @@ Set by an org owner, before any container gets push access.
   `release`, whose deployment policy allows `main` and `v*` tags only; the
   secrets move from repository secrets into it. Code on any other branch
   cannot obtain the App's token, even through a dispatched run.
-- The `pypi` environment allows `v*` tags only and has the human as required
-  reviewer.
+- The `pypi` environment allows `main` and `v*` tags only and has the human
+  as required reviewer. It allows `main` because a release's publish job runs
+  in the workflow a push to `main` starts, and GitHub checks an environment's
+  policy against the run's ref, not the tag the job checks out. The required
+  reviewer, not the ref policy, is what stops an unapproved publish.
 - Every workflow that pushes `main`, `gh-pages`, or a tag does so with a
   release App's token, in the `release` environment, never with
   `GITHUB_TOKEN`, so the rulesets can name the App as their only bypass.
