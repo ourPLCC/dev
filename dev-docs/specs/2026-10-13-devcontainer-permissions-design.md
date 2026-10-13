@@ -19,7 +19,7 @@ folder, so a Codespace cannot start at all.
 This spec decides, for every ourPLCC repo's devcontainer, what a human and an
 agent in it may do on GitHub, how the credential for that reaches the
 container, which GitHub-side settings make those limits hold, and where the
-tracker clone lives.
+shared clones live.
 
 ## Supersedes
 
@@ -27,15 +27,17 @@ tracker clone lives.
   in "Setup in each code repo", the devcontainer snippet, the host sibling
   clone, "pushes happen from the host", and "Hosts are Linux or macOS"; in
   "Git ownership", the reliance on bind mounts presenting files as the
-  container user (a volume keeps real UIDs; see "Where `dev` lives"); in
-  "Collisions", "one host clone" (now one volume per machine); in "Push
-  access" and "`bin/check.py`", that hooks and pre-push run on the host (they
-  now run in the container; `bin/check.py` stays standard-library Python);
-  and "writers push directly to `main`", which now holds only for tracker
-  data (see "`dev`'s `main`").
+  container user (a volume keeps real UIDs; see "Where the shared clones
+  live"); in "Collisions", "one host clone" (now one volume per machine); in
+  "Push access" and "`bin/check.py`", that hooks and pre-push run on the host
+  (they now run in the container; `bin/check.py` stays standard-library
+  Python).
 - [2026-10-10-org-developer-docs-design.md](2026-10-10-org-developer-docs-design.md):
-  "Relative paths work on the host and in the container, since the repos are
-  siblings in both." They are siblings in the container only.
+  that `dev` is the home of the change-request tracker (the tracker data
+  moves to `ourPLCC/change-requests`; `dev` keeps the guides, the agent rules,
+  and the tracker's tooling); and "Relative paths work on the host and in the
+  container, since the repos are siblings in both" (they are siblings in the
+  container only).
 - [2026-10-11-languages-ng-migration-design.md](2026-10-11-languages-ng-migration-design.md):
   the `initializeCommand` and the `../dev` bind mount in "Switch-over in
   languages-ng".
@@ -59,10 +61,16 @@ permission rules, the spec says so.
   fine-grained personal access token per contributor**, scoped to the
   `ourPLCC` owner with Contents and Pull requests read/write and nothing else,
   loaded only with `gh auth login --with-token`.
-- **GitHub enforces** the limits: rulesets forbid direct pushes to every code
-  repo's `main` and to `gh-pages`, forbid tag pushes, and restrict direct
-  pushes to `dev`'s `main` to tracker data; the token's scope forbids repos
-  outside ourPLCC, workflow files, settings, and running workflows by hand.
+- **The tracker data moves out of `dev`** into a new repo,
+  `ourPLCC/change-requests`, which holds only `backlog/`. It is the one repo
+  whose `main` takes direct pushes, so it holds nothing that runs or instructs:
+  no hooks, scripts, or agent rules. `dev` keeps those, and like every other
+  repo takes changes to `main` only through pull requests. The split's
+  mechanics have their own spec; see "Rollout".
+- **GitHub enforces** the limits: per-repo rulesets forbid direct pushes to
+  every `main` except `change-requests`', and to `gh-pages`, and forbid tag
+  pushes; the token's scope forbids repos outside ourPLCC, workflow files,
+  settings, and running workflows by hand.
 - **Code a pushed branch runs in CI cannot release.** Workflows get read-only
   tokens by default; release credentials live in environments that only `main`
   and release tags can use; publishing to PyPI waits for the human's approval.
@@ -72,9 +80,9 @@ permission rules, the spec says so.
 - **`gh`** is git's only credential helper for github.com, and git never falls
   back to VS Code's sign-in. Locally, `gh`'s login lives in a shared named
   volume `ourplcc-gh`; in a Codespace, it uses the Codespace's own token.
-- The tracker clone moves from a host folder to a shared named volume
-  `ourplcc-dev`, cloned from inside the container by a script. Nothing runs on
-  the host, so Windows hosts and Codespaces work.
+- `dev` and `change-requests` are cloned into shared named volumes from inside
+  the container. Nothing runs on the host, so Windows hosts and Codespaces
+  work.
 - The rule "commit in the container, push from the host" becomes "push from
   the container, through `dev`'s `bin/push.bash`".
 
@@ -86,10 +94,10 @@ below narrows it.
 | Operation | Human | Agent | Enforced by |
 | --- | --- | --- | --- |
 | Push, force-push, or delete a branch other than `main` and `gh-pages`, in any ourPLCC repo | yes | yes | — |
-| Push tracker data (`backlog/`, except `backlog/config.yml`) to `dev`'s `main` | yes | yes | — |
-| Push anything else to `dev`'s `main` | no | no | `dev` push ruleset |
-| Push to a code repo's `main` or to `gh-pages` | no | no | branch rulesets |
-| Push, move, or delete a tag | no | no | tag ruleset |
+| Push to `change-requests`' `main` | yes | yes | — |
+| Force-push or delete `change-requests`' `main` | no | no | branch ruleset |
+| Push to any other repo's `main` (`dev` included), or to `gh-pages` | no | no | branch rulesets |
+| Push, move, or delete a tag | no | no | tag rulesets |
 | Open, update, comment on, or close a PR | yes | yes | — |
 | Merge a PR | yes | **no** | ORG-AGENTS.md and Claude Code deny rules only |
 | Publish a package | no | no | `pypi` environment's required reviewer |
@@ -102,7 +110,9 @@ below narrows it.
 Merging is the human's because, in a code repo, merging to `main` is the
 release: semantic-release picks the version from the commit types. Even if an
 agent merges, nothing reaches PyPI until the human approves the `pypi`
-deployment in GitHub's web UI, which the token cannot do.
+deployment in GitHub's web UI, which the token cannot do. In `dev`, an
+agent's merge would change every agent's instructions; that, too, rests on
+the rule.
 
 Work the container cannot do — editing workflows, changing settings,
 rulesets, environments, or secrets, approving deployments — is done in
@@ -115,8 +125,8 @@ with the human's approval, and discovered work goes in the CR's notes. Its
 - Never merge a pull request.
 - Never run `gh auth login`, `gh auth refresh`, or `gh auth token`; if `gh`
   is not logged in, stop and tell the human.
-- Push `dev` only through `bin/push.bash`, and only to publish tracker changes
-  the human approved.
+- Push `change-requests` only through `dev`'s `bin/push.bash`, and only to
+  publish tracker changes the human approved.
 
 Each repo's checked-in `.claude/settings.json` denies the same commands, as a
 backstop rather than a boundary (an agent can reach the same API through other
@@ -132,9 +142,13 @@ commands):
 ]
 ```
 
+CR text in `change-requests` is data an agent reads, like issue text, and
+anyone with the token can write it. It carries no more authority than an
+issue: agent rules live in `dev`, behind review.
+
 ## GitHub-side settings
 
-Set once by an org owner, before any container gets push access.
+Set by an org owner, before any container gets push access.
 
 ### Tokens
 
@@ -150,49 +164,50 @@ Set once by an org owner, before any container gets push access.
 
 ### Workflows
 
-- The org's default `GITHUB_TOKEN` permission is **read-only**, and every
-  workflow in every ourPLCC repo declares an explicit, minimal `permissions:`
-  block (for example `contents: read` for CI).
-- Jobs that use the release GitHub App's secrets (`RELEASE_APP_ID`,
-  `RELEASE_APP_PRIVATE_KEY`) run in an environment `release`. Its deployment
-  policy allows `main` and `v*` tags only, and the secrets move from
-  repository secrets into it. Code on any other branch cannot obtain the App's
-  token, even through a dispatched run.
+- The org's default `GITHUB_TOKEN` permission is **read-only** (set
+  2026-10-13), and GitHub Actions may not create or approve pull requests.
+  Every workflow in every ourPLCC repo declares an explicit, minimal
+  `permissions:` block (for example `contents: read` for CI); today only
+  languages-ng's `test-languages.yaml` lacks one.
+- Jobs that use a release GitHub App's secrets run in an environment
+  `release`, whose deployment policy allows `main` and `v*` tags only; the
+  secrets move from repository secrets into it. Code on any other branch
+  cannot obtain the App's token, even through a dispatched run.
 - The `pypi` environment allows `v*` tags only and has the human as required
   reviewer.
-- The docs workflow pushes `gh-pages` with the release App's token, in the
-  `release` environment, instead of `GITHUB_TOKEN`, so `gh-pages` can be
-  protected with the App as its only bypass.
+- Every workflow that pushes `main`, `gh-pages`, or a tag does so with a
+  release App's token, in the `release` environment, never with
+  `GITHUB_TOKEN`, so the rulesets can name the App as their only bypass.
 
 ### Rulesets
 
-The release App is the only bypass actor on every ruleset below except the
-`dev` push ruleset; nobody else bypasses, org owners included.
+Per repo: org rulesets need GitHub Team, which ourPLCC does not have.
+"Apply the rulesets" is therefore a step in creating any ourPLCC repo. The
+release Apps are the only bypass actors; nobody else bypasses, org owners
+included.
 
-- **Code repos' `main`** (every repo except `dev`): require a pull request,
-  block force-pushes, block deletion.
-- **`gh-pages`** (every repo that has one): block all pushes, force-pushes,
-  and deletion.
-- **Tags** (every repo, all tags): block creation, update, and deletion.
-- **`dev`'s `main`**: a push ruleset rejecting direct pushes that change
-  anything outside `backlog/`, or `backlog/config.yml`. Changes to those paths
-  reach `main` through a pull request, so `dev`'s guides, `ORG-AGENTS.md`,
-  hooks, `bin/`, and `.backlog-version` (which every container executes or
-  loads) are reviewed like code. Repository admins bypass it for pull requests
-  only, never for direct pushes.
-
-Immutable releases are on for every repo that publishes releases, so a
-published release's notes and assets cannot be changed.
-
-Org-wide rulesets if the org's plan provides them; otherwise one per repo with
-the same content, and "rulesets applied" is a step in creating a repo.
+- **`main`**, every repo except `change-requests` (`dev` included): require a
+  pull request, block force-pushes, block deletion.
+- **`change-requests`' `main`**: block force-pushes and deletion; direct
+  pushes allowed.
+- **`gh-pages`**, every repo that has one: block all pushes, force-pushes, and
+  deletion.
+- **Tags**, every repo, all tags: block creation, update, and deletion.
 
 ### Repos that release differently
 
-Every repo the rulesets cover is checked for other actors that push to
-`main`, `gh-pages`, or tags (a different App, `GITHUB_TOKEN`, a deploy key).
-Each one is either added as a bypass actor, with the reason recorded in that
-repo's CR, or changed to use the release App.
+From their workflows on 2026-10-13:
+
+- **plcc-ng** releases and deploys docs with its release App, except that
+  `docs.yml` pushes `gh-pages` with `GITHUB_TOKEN`: it moves to the App.
+- **languages-ng**'s semantic-release creates tags and releases with
+  `GITHUB_TOKEN`: it moves to a release App.
+- **course-materials-ng** pushes `gh-pages` (mike) with `GITHUB_TOKEN` from
+  `deploy.yml` and `release.yml`: both move to a release App.
+- **plcc-ng-devcontainer** releases with its own App (`APP_ID`). It either
+  joins the bypass lists or adopts the shared release App, decided in that
+  repo's CR. Its CI also pushes `:pr-N` images to ghcr from PR branches;
+  nothing consumes them, so that stays.
 
 ## The token
 
@@ -229,20 +244,21 @@ Codespaces GPG verification for ourPLCC repos, and are unsigned otherwise.
   `GIT_CONFIG_*` entries in `containerEnv` that already set `safe.directory`:
 
   ```jsonc
-  "GIT_CONFIG_KEY_2":   "credential.https://github.com.helper",
-  "GIT_CONFIG_VALUE_2": "",
   "GIT_CONFIG_KEY_3":   "credential.https://github.com.helper",
-  "GIT_CONFIG_VALUE_3": "!gh auth git-credential"
+  "GIT_CONFIG_VALUE_3": "",
+  "GIT_CONFIG_KEY_4":   "credential.https://github.com.helper",
+  "GIT_CONFIG_VALUE_4": "!gh auth git-credential"
   ```
 
-  (with `GIT_CONFIG_COUNT` raised to match). Environment config is read after
-  system, global, and repo config, and an empty value clears the helper list
-  built so far. So it removes the helpers in the `~/.gitconfig` VS Code copies
-  from the host (Git Credential Manager, osxkeychain) and the one VS Code
-  installs to forward the host's credentials, both of which would carry the
-  host's unscoped credentials into the container. It needs no setup step and
-  is in force after every rebuild. `gh auth setup-git` is not used, because it
-  writes the `~/.gitconfig` that VS Code overwrites from the host.
+  (numbered after the three `safe.directory` entries in "Where the shared
+  clones live", with `GIT_CONFIG_COUNT` raised to match). Environment config
+  is read after system, global, and repo config, and an empty value clears the
+  helper list built so far. So it removes the helpers in the `~/.gitconfig`
+  VS Code copies from the host (Git Credential Manager, osxkeychain) and the
+  one VS Code installs to forward the host's credentials, both of which would
+  carry the host's unscoped credentials into the container. It needs no setup
+  step and is in force after every rebuild. `gh auth setup-git` is not used,
+  because it writes the `~/.gitconfig` that VS Code overwrites from the host.
 - Stops git falling back to VS Code's GitHub sign-in when `gh` has no token:
   `"GIT_TERMINAL_PROMPT": "0"` in `containerEnv`, and
   `"git.terminalAuthentication": false` and `"github.gitAuthentication": false`
@@ -280,69 +296,79 @@ same token.
 - `gh`, and git through it, use the `GITHUB_TOKEN` Codespaces provides. The
   `ourplcc-gh` volume starts empty and stays unused; nobody logs in.
 - Each devcontainer declares `customizations.codespaces.repositories` granting
-  `ourPLCC/dev` contents write; the Codespace's own repo is granted by default.
-  GitHub asks for this grant when the Codespace is created. Choosing to
-  continue without it leaves `dev` read-only, so the docs say to authorize it.
-  A change to the grant reaches only Codespaces created afterwards.
-- So in a Codespace the scope is that repo plus `dev`, narrower than local.
-  The table above still holds within that scope.
+  `ourPLCC/change-requests` contents write and `ourPLCC/dev` contents write
+  (for branches and PRs to `dev`); the Codespace's own repo is granted by
+  default. GitHub asks for this grant when the Codespace is created. Choosing
+  to continue without it leaves both read-only, so the docs say to authorize
+  it. A change to the grant reaches only Codespaces created afterwards.
+- So in a Codespace the scope is that repo plus `dev` and `change-requests`,
+  narrower than local. The table above still holds within that scope.
 
-## Where `dev` lives
+## Where the shared clones live
 
-Every devcontainer replaces the host clone and bind mount with a volume:
+Every devcontainer replaces the host clone and bind mount with two volumes:
+
+| Volume | Mounted at | Holds |
+| --- | --- | --- |
+| `ourplcc-dev` | `/workspaces/dev` | a clone of `ourPLCC/dev` |
+| `ourplcc-change-requests` | `/workspaces/change-requests` | a clone of `ourPLCC/change-requests` |
 
 - **No `initializeCommand`.** Nothing runs on the host.
-- **Mount** `source=ourplcc-dev,target=/workspaces/dev,type=volume`.
-- **`bin/install/dev-clone.bash`**, a copy in each repo's `bin/install/` (it
-  must exist before `dev` does), run from `postCreateCommand` and again from
-  `postStartCommand`. Idempotent. Under `flock` on a lock file in the volume,
-  so two containers created at once do not clone into the same directory:
-  - chown `/workspaces/dev` to the container user;
-  - if `/workspaces/dev` has no `.git`, or `git -C /workspaces/dev rev-parse
-    HEAD` fails (an interrupted clone), clone `https://github.com/ourPLCC/dev`
-    into it, moving any leftover aside first;
-  - set its `core.hooksPath` to `.githooks`.
+- **`containerEnv`**: `BACKLOG_CWD=/workspaces/change-requests`, and
+  `safe.directory` entries for `/workspaces/dev`,
+  `/workspaces/change-requests`, and the repo's own workspace.
+- **`bin/install/shared-clones.bash`**, a copy in each repo's `bin/install/`
+  (it must exist before `dev` does), run from `postCreateCommand` and again
+  from `postStartCommand`. Idempotent. Under `flock` on a lock file in the
+  `dev` volume, so two containers created at once do not clone into the same
+  directory. For each of the two volumes:
+  - chown it to the container user;
+  - if it has no `.git`, or `git rev-parse HEAD` fails in it (an interrupted
+    clone), clone the repo into it, moving any leftover aside first.
 
-  If the clone fails (offline), the script says so and exits non-zero; the
+  Then:
+  - set `change-requests`' `core.hooksPath` to `/workspaces/dev/.githooks`, so
+    the hooks that check tracker commits come from reviewed code;
+  - on start, fast-forward `dev`'s `main` when its working tree is clean and
+    on `main`, so every container runs the reviewed tooling and rules. It
+    never pulls `change-requests`; `bin/push.bash` does.
+
+  If a clone fails (offline), the script says so and exits non-zero; the
   container still starts, and rerunning the script is the recovery.
 - **Then the existing steps**: install the `backlog` version named in
   `/workspaces/dev/.backlog-version`, after checking that it is a plain
   `X.Y.Z` version (it is passed to `npm i -g`), the `git status` assertions,
   and the repo's own installs. `postStartCommand` warns when the installed
   `backlog --version` differs from `.backlog-version`.
-- `BACKLOG_CWD` and the `safe.directory` entries are unchanged.
-- Every image has `python3`, since the `.githooks` hooks run in
-  every container that shares the volume.
+- Every image has `python3`, since the hooks run in every container.
 
-**Pushing `dev`.** Every push of `dev` goes through a new `bin/push.bash` in
-`dev`. Under the same `flock` as the clone, so it cannot run while another
-container pushes, it fetches, rebases onto `origin/main`, runs
-`bin/check.py --pre-push`, and pushes. Push after every tracker change: the
-volume is not a backup.
+**Pushing tracker changes.** Every push of `change-requests` goes through
+`dev`'s `bin/push.bash`. Under the same `flock` as the clone, so it cannot run
+while another container pushes, it fetches, rebases onto `origin/main`, runs
+`dev`'s `bin/check.py --pre-push` against `change-requests`, and pushes. Push
+after every tracker change: the volume is not a backup.
 
-**Sharing and collisions.** Locally, every ourPLCC container shares one `dev`
-working tree, as with the bind mount, so one person's sessions on one machine
-never allocate the same ID. Backlog.md's auto-commits from two containers can
-still contend for `.git/index.lock`, as they could with the bind mount; the
-lock makes a pull-and-rebase no more dangerous than that. Two Codespaces, or a
-Codespace and a local container, are two `dev` trees, so one person can
-collide with themselves there; `bin/check.py` and `backlog doctor --fix`
-handle it as they handle collisions between people.
+**Sharing and collisions.** Locally, every ourPLCC container shares one
+`change-requests` working tree, as with the bind mount, so one person's
+sessions on one machine never allocate the same ID. Backlog.md's auto-commits
+from two containers can still contend for `.git/index.lock`, as they could
+with the bind mount; the lock makes a pull-and-rebase no more dangerous than
+that. Two Codespaces, or a Codespace and a local container, are two trees, so
+one person can collide with themselves there; `bin/check.py` and
+`backlog doctor --fix` handle it as they handle collisions between people.
 
-**What survives.** Locally, a container rebuild keeps the volume and any
-unpushed tracker commits; deleting the volume loses them. In a Codespace, a
-full rebuild deletes volumes, so unpushed tracker commits are lost; there,
-push immediately.
+**What survives.** Locally, a container rebuild keeps the volumes and any
+unpushed tracker commits; deleting a volume loses them. In a Codespace, a full
+rebuild deletes volumes, so unpushed tracker commits are lost; there, push
+immediately.
 
 `/workspaces/<repo>` and `/workspaces/dev` are siblings in the container, so
 `AGENTS.md`'s `@../dev/...` imports and `claude-imports.bash`'s approvals keep
-working. On the host there is no `../dev`; agents run in containers. The
-shared container path also gives `dev`'s `.worktrees/` one consistent absolute
-path, where the bind mount mixed host and container paths.
+working. On the host there is no `../dev`; agents run in containers.
 
 Work on `dev` itself happens in `/workspaces/dev` from any ourPLCC container,
-on a branch, through a pull request. `dev` gets no devcontainer of its own
-here.
+on a branch, through a pull request. Neither `dev` nor `change-requests` gets a
+devcontainer of its own here.
 
 ## Windows hosts
 
@@ -352,7 +378,7 @@ The code repo is still bind-mounted from the host.
   container CRLF in every file `.gitattributes` leaves at `text=auto`. That
   breaks byte-for-byte checks such as plcc-ng's docs fixtures, and scripts
   without a `.sh` or `.bash` extension. So every ourPLCC repo's
-  `.gitattributes`, `dev`'s included, starts with:
+  `.gitattributes`, `dev`'s and `change-requests`' included, starts with:
 
   ```gitattributes
   * text=auto eol=lf
@@ -372,19 +398,19 @@ The code repo is still bind-mounted from the host.
 
 ## Documentation changes
 
-In `dev` (through a pull request, per "`dev`'s `main`"):
+In `dev`, through a pull request:
 
 - `dev-docs/tracker.md`:
-  - "Setup": drop the host sibling clone; the container clones `dev` into the
-    `ourplcc-dev` volume. Replace "Commit inside the container; **push from
-    the host**" with "Commit and push inside the container, with
+  - "Setup": drop the host sibling clone; the container clones `dev` and
+    `change-requests` into volumes. Replace "Commit inside the container;
+    **push from the host**" with "Commit and push inside the container, with
     `bin/push.bash`, after every tracker change." Hosts: Linux, macOS,
     Windows, or a Codespace.
   - "Pushing and collisions": the same steps, run in the container, through
     `bin/push.bash`; Codespaces can collide with each other.
   - "Upgrading Backlog.md": rebuild every ourPLCC container after the bump.
-  - "Working on the tracker tooling": changes outside `backlog/` go through a
-    pull request; the checks run in the container.
+  - "Working on the tracker tooling": changes go through a pull request; the
+    checks run in the container.
 - `ORG-AGENTS.md`: the three rules under "What a container may do".
 - `CONTRIBUTING.md`: a section on working in a devcontainer — creating the
   token and getting it approved, `gh auth login --with-token`, what the
@@ -392,25 +418,36 @@ In `dev` (through a pull request, per "`dev`'s `main`"):
   the Codespaces grant, and the migration below.
 - `bin/check.py`'s docstring: no longer says checks run on hosts.
 
+What moves between `dev` and `change-requests`, and the README that tells
+`change-requests`' visitors that it holds committed work while GitHub Issues
+hold conversations, belong to the split's spec.
+
 In each code repo: `CONTRIBUTING.md`'s development-environment section
-describes the volume in place of the `../dev` clone, and drops plcc-ng's
+describes the volumes in place of the `../dev` clone, and drops plcc-ng's
 `../change-requests` rename paragraph.
 
 ## Rollout
 
-1. **GitHub-side settings**, by an org owner, and the workflow and
-   environment changes in each repo that releases or deploys docs. Until
-   these are in, no container gets push access.
-2. **`dev`**: `bin/push.bash`, the documentation changes, `.gitattributes`.
-3. **Every repo that mounts `../dev`** — plcc-ng, languages-ng, plcc-ng-demo,
+1. **GitHub-side settings**, by an org owner: tokens, workflow defaults, the
+   `release` and `pypi` environments, and the rulesets, together with each
+   repo's workflow changes in "Repos that release differently". Until these
+   are in, no container gets push access.
+2. **Split `ourPLCC/change-requests` out of `dev`**, under its own spec and CR
+   in `dev`: create the repo, move `backlog/` with its history, rewrite CR
+   references whose relative depth changes, point `dev`'s check CI and
+   `bin/check.py` at the new repo, and keep `change-requests` free of code.
+   Creating `ourPLCC/change-requests` ends GitHub's redirect from that old
+   name to `dev`; the split's spec says which old links that breaks.
+3. **`dev`**: `bin/push.bash`, the documentation changes, `.gitattributes`.
+4. **Every repo that mounts `../dev`** — plcc-ng, languages-ng, plcc-ng-demo,
    plcc-ng-devcontainer, course-materials-ng, and any repo added later — one CR
    each: the devcontainer changes in "How the credential reaches the
-   container" and "Where `dev` lives", `bin/install/dev-clone.bash`,
-   `.claude/settings.json`'s deny rules, `.gitattributes`, and its
-   `CONTRIBUTING.md`.
-4. **Contributors migrate** only once every CR in step 3 has merged. Until
+   container" and "Where the shared clones live",
+   `bin/install/shared-clones.bash`, `.claude/settings.json`'s deny rules,
+   `.gitattributes`, and its `CONTRIBUTING.md`.
+5. **Contributors migrate** only once every CR in step 4 has merged. Until
    then an unmigrated devcontainer, or an old branch of a migrated one,
-   recreates `../dev` on the host, and one person has two `dev` trees.
+   recreates `../dev` on the host, and one person has two tracker trees.
 
 ## Migration, once per contributor
 
@@ -418,8 +455,9 @@ describes the volume in place of the `../dev` clone, and drops plcc-ng's
    `git log --branches --not --remotes`, `git worktree list`, and
    `git stash list` all come back clean. Push or discard what they show.
 2. Create the token and wait for its approval.
-3. Rebuild one ourPLCC container. It clones `dev` into the volume. Run
-   `gh auth login --with-token`, then check that `bin/push.bash` pushes.
+3. Rebuild one ourPLCC container. It clones `dev` and `change-requests` into
+   their volumes. Run `gh auth login --with-token`, then check that
+   `bin/push.bash` pushes.
 4. On a Windows host, re-check out each code repo
    (`git rm -r --cached -q . && git reset --hard`) or clone it fresh.
 5. Delete the host's `../dev`. Do not check out a pre-migration branch of any
@@ -434,16 +472,16 @@ Codespace.
 Must succeed:
 
 1. Push a new branch and open a PR with `gh pr create`.
-2. Push a tracker change to `dev`'s `main` with `bin/push.bash`.
+2. Push a tracker change to `change-requests`' `main` with `bin/push.bash`.
 3. After a rebuild (locally; in a Codespace, a plain rebuild, not a full
-   one), steps 1 and 2 work with no new login, and unpushed `dev` commits
+   one), steps 1 and 2 work with no new login, and unpushed tracker commits
    made before the rebuild are still there.
 
 Must fail:
 
-4. A direct push to the repo's `main`, and to `gh-pages` if it has one.
-5. A direct push to `dev`'s `main` changing a file outside `backlog/`, or
-   `backlog/config.yml`.
+4. A direct push to the repo's `main`, to `dev`'s `main`, and to `gh-pages`
+   if the repo has one.
+5. A force-push to `change-requests`' `main`.
 6. A push of a commit touching `.github/workflows/`.
 7. Pushing any tag; `gh release create` for a new tag.
 8. `gh workflow run` on any workflow.
@@ -457,21 +495,13 @@ Must hold:
     `git push` fails at once without a prompt.
 11. `ssh-add -l` cannot reach an agent.
 12. A CI run on the PR from step 1 has a read-only `GITHUB_TOKEN` and no
-    access to the release App's secrets.
+    access to a release App's secrets.
 
 ## Open checks
 
-Settled during step 1 or the first repo's CR. A result that contradicts this
-spec is fixed here, before the spec is frozen.
+Settled during step 1 of "Rollout" or the first repo's CR. A result that
+contradicts this spec is fixed here, before the spec is frozen.
 
-- **`dev` push ruleset.** The org's plan offers push rulesets with file-path
-  restrictions on `dev`, expressing "anything outside `backlog/`, or
-  `backlog/config.yml`", with an admin bypass limited to pull requests. If it
-  cannot, fall back to splitting the tracker data into its own repo holding
-  only `backlog/`: `dev` becomes pull-request-only like the code repos, and
-  containers push only to the data repo. That fallback needs its own revision
-  of this spec.
-- Org-wide rulesets are available on the org's plan.
 - `remoteEnv` with an empty `SSH_AUTH_SOCK` stops git and `ssh` from reaching
   the forwarded agent; if not, another way to stop VS Code forwarding it.
 - The Codespace token cannot push workflow changes, create releases, or push
@@ -480,15 +510,15 @@ spec is fixed here, before the spec is frozen.
   `GITHUB_TOKEN` is refreshed. If not, the helper becomes a small script that
   defers to Codespaces' own helper when `$CODESPACES` is set.
 - Codespaces honors `type=volume` mounts under `/workspaces`.
-- Immutable releases are available for the org's repos.
 
 ## Out of scope
 
 - Agents merging PRs, and any automated check that would make that safe.
 - A separate GitHub identity for agents.
+- The mechanics of the `change-requests` split (its own spec).
 - Other ways to make working across repos smoother, beyond the shared
   volumes.
-- A devcontainer for `dev`.
+- Devcontainers for `dev` and `change-requests`.
 
 ## Alternatives considered
 
@@ -501,6 +531,9 @@ spec is fixed here, before the spec is frozen.
 | `gh auth setup-git` | Writes `~/.gitconfig`, which VS Code replaces with the host's copy |
 | Token with the Workflows permission | A workflow on a pushed branch runs before review; workflow edits are rare enough to do outside the container |
 | Restrict OAuth app access for the org | Also blocks the host's Git Credential Manager, which the host needs for what the container cannot do |
-| `dev`'s `main` open to direct pushes, guarded by `bin/push.bash` refusing non-tracker paths | A rule an injected agent can skip, on the path that sets every agent's instructions and every container's hooks |
-| Keep `dev` as a host bind mount | Needs host-side shell (no Windows) and a host path (no Codespaces) |
+| Keep tracker data in `dev`, restricting direct pushes to `backlog/` with a push ruleset | Push rulesets are not available to ourPLCC |
+| Keep tracker data in `dev`, open to direct pushes, guarded by `bin/push.bash` | A rule an injected agent can skip, on the path that sets every agent's instructions and every container's hooks |
+| Tracker data on an orphan branch of `dev`, checked out as a worktree | Same protection as a separate repo, but orphan branches and worktrees are unfamiliar to new contributors, and GitHub shows `main` by default |
+| Org rulesets | Need GitHub Team |
+| Keep the shared clone as a host bind mount | Needs host-side shell (no Windows) and a host path (no Codespaces) |
 | One container for all repos | Mixes every repo's dependencies and drops the boundary between repos |
