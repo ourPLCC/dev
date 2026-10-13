@@ -99,8 +99,27 @@ class SplitLinksTest(unittest.TestCase):
         self.assertIn("would change: backlog/tasks/cr-1 - A.md: ../../dev-docs/specs/s.md -> "
                       "../../../dev/dev-docs/specs/s.md", out.getvalue())
         self.assertIn("skipped: backlog/tasks/cr-1 - A.md: ../../TEMPLATE.md", out.getvalue())
-        self.assertIn("split_links: 2 changed, 2 skipped", out.getvalue())
+        self.assertIn("split_links: 2 changed, 2 skipped, 0 unmatched", out.getvalue())
         self.assertEqual(self.task.read_text(), TASK)
+
+    def test_unrecognised_forms_are_reported(self):
+        text = ("---\nreferences:\n  - '../../dev-docs/specs/s.md'\n---\n\n"
+                '[t](../../migrate/verify.py "title") [a](<../../migrate/verify.py>)\n'
+                "[r]: ../../migrate/verify.py\n")
+        self.assertEqual(split_links.find_unmatched(text), [
+            "../../dev-docs/specs/s.md", "../../migrate/verify.py", "../../migrate/verify.py",
+            "../../migrate/verify.py"])
+
+    def test_recognised_forms_are_not_reported_as_unmatched(self):
+        self.assertEqual(split_links.find_unmatched(TASK), [])
+
+    def test_cli_reports_unmatched(self):
+        self.task.write_text(TASK + "\n[r]: ../../migrate/verify.py\n")
+        out = io.StringIO()
+        with redirect_stdout(out):
+            split_links.main(["--tracker", str(self.tracker), "--dev", str(self.dev), "--check"])
+        self.assertIn("unmatched: backlog/tasks/cr-1 - A.md: ../../migrate/verify.py", out.getvalue())
+        self.assertIn("split_links: 2 changed, 2 skipped, 1 unmatched", out.getvalue())
 
     def test_cli_write_exits_0(self):
         with redirect_stdout(io.StringIO()):

@@ -16,6 +16,7 @@ PREFIX = "../../"
 NEW_PREFIX = "../../../dev/"
 LINK_RE = re.compile(r"(\]\()(\.\./\.\./[^)\s]+)(\))")
 REF_RE = re.compile(r"^(  - )(\.\./\.\./\S+)$", re.MULTILINE)
+BARE_RE = re.compile(r"(?<![\w./])\.\./\.\./(?!\.\./)[^\s)>'\"`]*")
 
 
 def rewrite_target(target, dev_root):
@@ -57,6 +58,20 @@ def rewrite_text(text, dev_root):
     return front + body, changes, skipped
 
 
+def find_unmatched(text):
+    """../../ targets in forms neither regex recognises, so a human looks at them."""
+    front, body = _split_frontmatter(text)
+    rest = REF_RE.sub("", front) + LINK_RE.sub("", body)
+    return BARE_RE.findall(rest)
+
+
+def find_unmatched_tracker(tracker_root):
+    tracker_root = Path(tracker_root)
+    return [(path.relative_to(tracker_root).as_posix(), target)
+            for path in sorted((tracker_root / "backlog").rglob("*.md"))
+            for target in find_unmatched(path.read_text(encoding="utf-8"))]
+
+
 def rewrite_tracker(tracker_root, dev_root, write=True):
     tracker_root = Path(tracker_root)
     all_changes, all_skipped = [], []
@@ -79,13 +94,16 @@ def main(argv=None):
                         help="root of a dev checkout, to test that targets exist")
     parser.add_argument("--check", action="store_true", help="report only; write nothing")
     args = parser.parse_args(argv)
+    unmatched = find_unmatched_tracker(args.tracker)
     changes, skipped = rewrite_tracker(args.tracker, args.dev, write=not args.check)
     verb = "would change" if args.check else "changed"
     for rel, old, new in changes:
         print(f"{verb}: {rel}: {old} -> {new}")
     for rel, target in skipped:
         print(f"skipped: {rel}: {target}")
-    print(f"split_links: {len(changes)} changed, {len(skipped)} skipped")
+    for rel, target in unmatched:
+        print(f"unmatched: {rel}: {target}")
+    print(f"split_links: {len(changes)} changed, {len(skipped)} skipped, {len(unmatched)} unmatched")
     return 1 if (args.check and changes) else 0
 
 
