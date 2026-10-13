@@ -4,6 +4,7 @@ title: Apply GitHub-side protections for container push access
 status: To Do
 assignee: []
 created_date: '2026-10-13 13:54'
+updated_date: '2026-10-13 19:35'
 labels: []
 dependencies: []
 references:
@@ -25,3 +26,9 @@ Devcontainers in ourPLCC are getting push access through a fine-grained token sc
 - [ ] #2 deploy.yml and release.yml push gh-pages with a release App's token in a release environment limited to main
 - [ ] #3 A deploy run after the change publishes the dev docs
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-10-13: the ourPLCC Release Bot App's installation now covers this repo (installation: plcc-ng, plcc-ng-devcontainer, languages-ng, course-materials-ng). Its private key for this repo must go only into a release environment, never repository secrets: any of the App's keys mints tokens for every repo in the installation.
+<!-- SECTION:NOTES:END -->
