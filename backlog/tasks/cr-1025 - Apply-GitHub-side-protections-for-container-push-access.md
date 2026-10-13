@@ -38,4 +38,6 @@ AC 2 and 3 evidence (2026-10-13): PR #68 (merge d56ab3d) runs deploy.yml and rel
 Found while here: checks.yml's External links job (lychee) fails on PR #68 because some linked sites block bots. Unrelated to this CR. Triage at close.
 
 Deviation (2026-10-13, maintainer's decision): Alain (alainkaegi) pushes to main directly, and that workflow stays. So ruleset 17903860 'default branch', now active on main (deletion, non_fast_forward, pull_request with 0 approvals, Strict build status check), has two bypass actors: the ourPLCC Release Bot and alainkaegi, both Always allow. Everyone else, including agents holding other contributors' tokens, must use a PR. Why main still needs protecting here: deploy.yml runs on push to main in the release environment and mints the release App's token, which reaches every repo in the App's installation; an open main would let any token holder run code with it. Residual risk: Alain's own token. The permissions spec says the release Apps are the only bypass actors; it needs a sentence recording this exception. Remaining for AC 1: the gh-pages and tag rulesets.
+
+Update (2026-10-13): the maintainer removed the Strict build required status check from ruleset 17903860; main's rules are now deletion, non_fast_forward, and pull_request (0 approvals).
 <!-- SECTION:NOTES:END -->
