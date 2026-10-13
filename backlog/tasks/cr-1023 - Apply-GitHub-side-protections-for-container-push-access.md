@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-13 13:53'
-updated_date: '2026-10-13 18:18'
+updated_date: '2026-10-13 18:22'
 labels: []
 dependencies: []
 references:
@@ -36,5 +36,5 @@ Devcontainers are getting push access through a fine-grained token that any agen
 <!-- SECTION:NOTES:BEGIN -->
 dev's .github/workflows/check.yml has no permissions block (found 2026-10-13 while correcting the permissions spec). Out of scope here: CR-1023 covers plcc-ng only, and no existing CR covers dev's workflows. Triage at close.
 
-Cross-repo gap (found 2026-10-13): the ourPLCC Release Bot App is installed on plcc-ng, plcc-devcontainer, and plcc-ng-devcontainer, each holding its own private key in repository secrets. Any of the App's keys mints installation tokens for all three repos, so a branch workflow in plcc-devcontainer or plcc-ng-devcontainer that can read its repository-level key can get Contents write on plcc-ng and bypass plcc-ng's rulesets (the App is their bypass actor). plcc-ng is protected only once both have moved the key into a release environment limited to main and v* tags, or left the installation and had their keys deleted. plcc-devcontainer is not in the permissions spec at all; the spec also says plcc-ng-devcontainer uses its own App (APP_ID), which may be this App under another secret name. Container push access (CR-1027 and dependents) should wait for the gap to close. Triage at close.
+Cross-repo gap (found 2026-10-13): the ourPLCC Release Bot App is installed on plcc-ng and plcc-ng-devcontainer, each holding its own private key in repository secrets. Any of the App's keys mints installation tokens for every repo in the installation, so a branch workflow in plcc-ng-devcontainer that can read its repository-level key can get Contents write on plcc-ng and bypass plcc-ng's rulesets (the App is their bypass actor). The spec says plcc-ng-devcontainer uses its own App (APP_ID); that may be this App under another secret name. plcc-devcontainer (retired) was removed from the installation on 2026-10-13, but its key still works for the remaining repos until the repo is archived or its key and secrets are deleted. Container push access (CR-1027 and dependents) should wait until plcc-ng-devcontainer's key sits in a release environment limited to main and v* tags, and plcc-devcontainer's key is unreachable. Triage at close.
 <!-- SECTION:NOTES:END -->
