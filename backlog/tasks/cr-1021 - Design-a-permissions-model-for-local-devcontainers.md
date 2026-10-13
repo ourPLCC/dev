@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-12 18:38'
-updated_date: '2026-10-13 17:28'
+updated_date: '2026-10-13 17:32'
 labels: []
 dependencies:
   - CR-1022
@@ -28,8 +28,8 @@ What a container may do, with which credentials, and what an agent in it may do 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 A spec in dev-docs/specs/ defines which GitHub operations (at least push and opening a PR) a local devcontainer can perform, separately for a human contributor and for an agent working in it
-- [ ] #2 The spec says how credentials reach the container without being committed to a repo or baked into an image, and how they survive a container rebuild
+- [x] #1 A spec in dev-docs/specs/ defines which GitHub operations (at least push and opening a PR) a local devcontainer can perform, separately for a human contributor and for an agent working in it
+- [x] #2 The spec says how credentials reach the container without being committed to a repo or baked into an image, and how they survive a container rebuild
 - [ ] #3 The tracker guide's "push from the host" rule matches the spec
 - [ ] #4 ORG-AGENTS.md's Limits on autonomy forbids agents merging PRs, running gh auth login/refresh/token, and pushing change-requests other than through bin/push.bash
 - [ ] #5 dev's CONTRIBUTING.md explains working in a devcontainer: creating and approving the token, gh auth login --with-token, what the container cannot do and where to do it, approving PyPI deployments, the Codespaces grant, and the per-contributor migration
@@ -43,4 +43,6 @@ What a container may do, with which credentials, and what an agent in it may do 
 From CR-1022's spec (2026-10-13-change-requests-split-design.md): step 1 of Rollout must not apply dev's main ruleset; nobody bypasses it, so tracker pushes from the host to dev would stop before the split. CR-1022's cutover applies dev's rulesets instead. Also, CR-1022 chose a coordinated cutover (tracker down from freeze until the first rebuilt container), which simplifies Rollout step 5 and the per-contributor migration. Fix the permissions spec in place to match.
 
 Spec amendments and the implementation are both PR'd in dev: cr-1021-reconcile-permissions-spec (against main) and cr-1021-push-from-container (draft, based on cr-1022-check-change-requests; merges in cutover step 6, after the spec PR). Deferred minors from the final review, to triage at close: (1) tracker.md Setup: 'It sets BACKLOG_CWD' has an unclear subject; (2) CONTRIBUTING's token steps could say GitHub adds Metadata read automatically; (3) a command inside push.bash exiting 75 would be reported as a lock timeout. For CR-1027: shared-clones.bash must take the lock as flock -o -w 120 /workspaces/dev, as push.bash does, and the open check that the lock blocks across containers is still open.
+
+Spec amendments merged as dev PR #14 (4f96a92); AC #1 and #2 hold on main. The implementation is dev PR #15 (cr-1021-push-from-container -> main). It also carries the split's three unmerged commits from cr-1022-check-change-requests, so it merges only in the split's cutover step 6, after the split's PR (step 4); keep it a draft until then. AC #3-#7 are checked at close, after #15 merges.
 <!-- SECTION:NOTES:END -->
