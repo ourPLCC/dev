@@ -440,11 +440,13 @@ describes the volumes in place of the `../dev` clone, and drops plcc-ng's
    name to `dev`; the split's spec says which old links that breaks.
 3. **`dev`**: `bin/push.bash`, the documentation changes, `.gitattributes`.
 4. **Every repo that mounts `../dev`** — plcc-ng, languages-ng, plcc-ng-demo,
-   plcc-ng-devcontainer, course-materials-ng, and any repo added later — one CR
-   each: the devcontainer changes in "How the credential reaches the
+   plcc-ng-devcontainer, and any repo that adopts the shared setup later — one
+   CR each: the devcontainer changes in "How the credential reaches the
    container" and "Where the shared clones live",
    `bin/install/shared-clones.bash`, `.claude/settings.json`'s deny rules,
-   `.gitattributes`, and its `CONTRIBUTING.md`.
+   `.gitattributes`, and its `CONTRIBUTING.md`. course-materials-ng's
+   devcontainer does not use the shared setup, so it needs only step 1 until it
+   adopts it.
 5. **Contributors migrate** only once every CR in step 4 has merged. Until
    then an unmigrated devcontainer, or an old branch of a migrated one,
    recreates `../dev` on the host, and one person has two tracker trees.
