@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-13 13:53'
-updated_date: '2026-10-13 18:43'
+updated_date: '2026-10-13 18:45'
 labels: []
 dependencies: []
 references:
@@ -23,9 +23,9 @@ Devcontainers are getting push access through a fine-grained token that any agen
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Org settings: fine-grained tokens need an owner's approval and last 90 days at most; classic tokens are blocked
+- [x] #1 Org settings: fine-grained tokens need an owner's approval and last 90 days at most; classic tokens are blocked
 - [x] #2 Rulesets: main requires a pull request and blocks force-push and deletion; gh-pages and all tags block every push; the release App is the only bypass actor
-- [ ] #3 The release App's secrets live in a release environment limited to main and v* tags; the pypi environment is limited to main and v* tags and requires the maintainer's approval
+- [x] #3 The release App's secrets live in a release environment limited to main and v* tags; the pypi environment is limited to main and v* tags and requires the maintainer's approval
 - [x] #4 docs.yml pushes gh-pages with the release App's token instead of GITHUB_TOKEN
 - [x] #5 Every workflow declares an explicit, minimal permissions block
 - [ ] #6 A release run after the change publishes to PyPI and deploys docs
@@ -41,4 +41,8 @@ Cross-repo gap (found 2026-10-13): the ourPLCC Release Bot App is installed on p
 AC 4 and 5 evidence: PR #337 (merge b0442e50) adds explicit permissions blocks to ci.yml, docs-tests.yml, docs.yml, and release.yml. Post-merge Docs run 38446530069 pushed gh-pages (da91bfc) with the release App's token from the release environment; Release run 38446530070 ran semantic-release in the release environment, cut no version, and skipped publish and create-release.
 
 AC 2 evidence (2026-10-13, public rules API): ruleset 3590717 'default' on main applies deletion, non_fast_forward, and pull_request (0 approvals); ruleset 25020471 'gh-pages' applies creation, update, deletion, non_fast_forward; ruleset 25020571 'All tags' (tag target) applies creation, update, deletion, non_fast_forward. All active. The ourPLCC Release Bot is the only bypass actor (set in the UI; the bypass list is not public). The next release exercises the bypass on main, tags, and gh-pages (AC 6).
+
+AC 1 evidence (2026-10-13, org settings UI): fine-grained tokens allowed with administrator approval required and a 90-day maximum lifetime; classic tokens restricted.
+
+AC 3 evidence (2026-10-13): plcc-ng's release environment allows main and v* and holds RELEASE_APP_ID and RELEASE_APP_PRIVATE_KEY; the repository-level copies are deleted. The pypi environment allows main and v*.*.* (narrower than the spec's v*, matching all 127 release tags), requires the maintainer's approval, allows self-review, and disallows admin bypass. Release run 38446530070 and Docs run 38446530069 drew the App's secrets from the release environment.
 <!-- SECTION:NOTES:END -->
