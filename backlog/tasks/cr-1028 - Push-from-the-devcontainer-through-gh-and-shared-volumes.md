@@ -26,7 +26,7 @@ Nobody can push from inside languages-ng's devcontainer, so every push happens o
 <!-- AC:BEGIN -->
 - [ ] #1 The devcontainer applies the spec's 'How the credential reaches the container' and 'Where the shared clones live', as plcc-ng's does
 - [ ] #2 bin/install/shared-clones.bash clones dev and change-requests idempotently under flock
-- [ ] #3 Claude Code settings deny the commands the spec lists, in .claude/settings.json
+- [ ] #3 .claude/settings.json denies the commands the spec lists
 - [ ] #4 .gitattributes starts with * text=auto eol=lf
 - [ ] #5 CONTRIBUTING.md describes the volumes in place of the ../dev clone
 - [ ] #6 In a rebuilt local container, a smoke test passes: push a branch and open a PR with gh, list CRs with backlog task list, push a tracker change with bin/push.bash, and see a direct push to main rejected. The full Verification checklist runs only for plcc-ng, in CR-1027, since this repo's devcontainer changes copy plcc-ng's.
