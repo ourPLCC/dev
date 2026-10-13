@@ -1,13 +1,15 @@
-# ourPLCC developer docs and change requests
+# ourPLCC developer docs
 
 How we build ourPLCC, for maintainers, their agents, and new developers:
 the developer guide shared by every ourPLCC repository, org-wide specs, agent
-rules, and the central change-request tracker for work on plcc-ng,
-languages-ng, plcc-ng-demo, plcc-ng-devcontainer, and course-materials-ng.
+rules, and the tooling for the change-request tracker. The tracker itself, for
+work on plcc-ng, languages-ng, plcc-ng-demo, plcc-ng-devcontainer, and
+course-materials-ng, is
+[ourPLCC/change-requests](https://github.com/ourPLCC/change-requests).
 
 **Reporting a problem or suggesting an idea?** Open a GitHub issue on the
 relevant code repository instead. GitHub Issues are where humans talk to us;
-this repository is where maintainers track the resulting work.
+the tracker is where maintainers track the resulting work.
 
 **Start with [CONTRIBUTING.md](CONTRIBUTING.md)**, the developer guide.
 

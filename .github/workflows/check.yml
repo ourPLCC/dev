@@ -4,11 +4,18 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ourPLCC/change-requests
+          path: change-requests
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -22,6 +29,7 @@ jobs:
           python3 -m unittest discover -s tests -t .
           python3 -m unittest discover -s migrate/tests -t .
       - name: Consistency check
-        run: python3 bin/check.py --pre-push
+        run: python3 bin/check.py --pre-push --root change-requests
       - name: Backlog.md doctor
+        working-directory: change-requests
         run: backlog doctor

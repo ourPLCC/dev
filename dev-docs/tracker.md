@@ -2,7 +2,9 @@
 
 The central tracker for work on the ourPLCC code repositories: plcc-ng,
 languages-ng, plcc-ng-demo, plcc-ng-devcontainer, and course-materials-ng. It
-is managed with [Backlog.md](https://github.com/MrLesk/Backlog.md). This is
+is managed with [Backlog.md](https://github.com/MrLesk/Backlog.md). Its data
+lives in [ourPLCC/change-requests](https://github.com/ourPLCC/change-requests);
+its checks and tooling live here, in `dev`. This is
 the full guide to using it; the [developer guide](../CONTRIBUTING.md) gives
 the short version and the workflow around it.
 
@@ -59,7 +61,8 @@ this guide wins.
    decision that binds more than one repo); update the CR's acceptance
    criteria to match and add the spec as a reference:
    `backlog task edit CR-N --add-ref ../../../plcc-ng/dev-docs/specs/<file>.md`
-   (for this repo: `../../dev-docs/specs/<file>.md`). Specs do not cite CRs.
+   (for this repo: `../../../dev/dev-docs/specs/<file>.md`). Specs do not cite
+   CRs.
 2. **Plan and execute:** the plan lives in `.plans/` inside the worktree
    (gitignored) and is deleted with it. Plans are not kept. During automated
    execution, record discovered work in the CR's notes —
@@ -102,7 +105,7 @@ dependency as satisfied, so review the CRs that depended on it.
 - **Demote** (`backlog task demote CR-N`) only when nothing cites the CR:
 
   ```bash
-  grep -rn 'CR-N\b' /workspaces/dev/backlog /workspaces/<repo> --include='*.md'
+  grep -rn 'CR-N\b' /workspaces/change-requests/backlog /workspaces/<repo> --include='*.md'
   git -C /workspaces/<repo> log --all --oneline -i --grep 'cr-N\b'
   ```
 
@@ -124,7 +127,8 @@ version impact; its branch may carry other commit types too.
 
 Every CR has exactly one `project`: `plcc-ng`, `languages-ng`, `plcc-ng-demo`,
 `plcc-ng-devcontainer`, `course-materials-ng`, or `dev` (this repo: the org
-docs and specs, the tracker's config, checks, CI, and migration tooling). Work spanning repos is one
+docs and specs, and the tracker's checks, CI, and migration tooling; the
+config is `change-requests`' `backlog/config.yml`). Work spanning repos is one
 CR per repo linked with `--dep` (no umbrella CRs); `backlog task list --ready`
 hides a CR until its dependencies are done.
 
@@ -172,7 +176,7 @@ to renumber the unpushed CR, commit, and push. CI runs the same check plus
 
 ## Checks (`bin/check.py`)
 
-Fails on: duplicate IDs (drafts included) or a filename that does not match its `id`; a
+`bin/check.py --root <tracker>` fails on: duplicate IDs (drafts included) or a filename that does not match its `id`; a
 `DRAFT-N` cited outside its own file; a CR without exactly one configured
 `project` or `type`; an unconfigured label; anything in `archive/`; and, with
 `--pre-push`, uncommitted changes under `backlog/`. `CR-999` is exempt from
@@ -222,8 +226,8 @@ checks run on hosts as well as in containers. Run what CI runs
 ```bash
 python3 -m unittest discover -s tests -t .
 python3 -m unittest discover -s migrate/tests -t .
-python3 bin/check.py --pre-push
-backlog doctor
+python3 bin/check.py --pre-push --root /workspaces/change-requests
+(cd /workspaces/change-requests && backlog doctor)
 ```
 
 A new rule in `bin/check.py` gets a test in `tests/test_check.py` and a line
