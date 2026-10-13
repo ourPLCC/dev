@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Consistency checks for the ourPLCC change-request tracker.
 
-Standard library only: this runs on maintainers' hosts (pre-push hook) as
-well as in containers, without Node or Backlog.md.
+Standard library only: this runs from the hooks and in CI without Node or
+Backlog.md. --root names the tracker repo (ourPLCC/change-requests).
 """
 import argparse
 import re
@@ -132,7 +132,8 @@ def check(root, pre_push=False):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--root", default=str(Path(__file__).resolve().parent.parent))
+    parser.add_argument("--root", required=True,
+                        help="root of the tracker repo, which holds backlog/")
     parser.add_argument("--pre-push", action="store_true",
                         help="also fail on uncommitted changes under backlog/")
     args = parser.parse_args(argv)
