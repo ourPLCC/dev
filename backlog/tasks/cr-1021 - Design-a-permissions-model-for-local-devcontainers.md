@@ -1,9 +1,11 @@
 ---
 id: CR-1021
 title: Design a permissions model for local devcontainers
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@StoneyJackson'
 created_date: '2026-10-12 18:38'
+updated_date: '2026-10-13 12:36'
 labels: []
 dependencies: []
 type: chore
