@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:53'
-updated_date: '2026-10-13 17:32'
+updated_date: '2026-10-13 18:49'
 labels: []
 dependencies: []
 references:
@@ -30,6 +30,7 @@ Containers are getting push access, and tracker changes are pushed straight to d
 - [ ] #4 Rulesets: dev's main requires a pull request and blocks force-push and deletion; change-requests' main blocks force-push and deletion; all tags are blocked in both
 - [ ] #5 change-requests' README says it holds work we committed to, while GitHub Issues hold conversations
 - [ ] #6 The cutover follows the spec's sequence, and the tracker is unavailable only between the freeze and the first rebuilt devcontainer listing CRs from change-requests
+- [ ] #7 Every workflow in dev declares an explicit, minimal permissions block
 <!-- AC:END -->
 
 ## Implementation Notes
@@ -38,4 +39,6 @@ Containers are getting push access, and tracker changes are pushed straight to d
 Discovered during implementation (final review): (1) migrate/verify.py:65 runs tracker_root/bin/check.py, which change-requests lacks; a future migration needs it to call dev's check.py with --root. (2) PR 2's CI can pass before ourPLCC/change-requests exists, because the name still redirects to dev; a green run before cutover step 2 proves nothing about the real data. (3) Cutover step 3 must run split_links with --dev pointing at a dev main that has pulled PR 1, or CR-1022's own spec reference is skipped; expect 24 changed, 2 skipped, 4 unmatched (prose in code spans) plus any CRs filed since 2026-10-13.
 
 Cutover step 6 merges dev PR #15 (CR-1021: bin/push.bash and the docs). It is based on cr-1022-check-change-requests, so once the split's PR merges, its diff against main shrinks to CR-1021's own commits; merge it only after that.
+
+Folded in from CR-1023's triage (2026-10-13): dev's .github/workflows/check.yml has no permissions block, though the devcontainer permissions spec requires one in every ourPLCC workflow. This CR already reworks dev's CI.
 <!-- SECTION:NOTES:END -->
