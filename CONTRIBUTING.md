@@ -16,7 +16,8 @@ Repo docs link to this guide rather than restating it, even to agree with it.
   reports a problem or suggests an idea by opening an issue on the relevant
   code repo.
 - **Change requests (CRs)** are the work we commit to, tracked centrally in
-  this repo with [Backlog.md](https://github.com/MrLesk/Backlog.md). A CR is
+  [ourPLCC/change-requests](https://github.com/ourPLCC/change-requests) with
+  [Backlog.md](https://github.com/MrLesk/Backlog.md). A CR is
   work in exactly one repo with testable acceptance criteria, and has an ID
   `CR-N`. Work spanning repos is one CR per repo, linked by dependencies.
 - **Drafts** are ideas we have not committed to. Never cite one.
