@@ -24,7 +24,7 @@ Nobody can push from inside plcc-ng-demo's devcontainer, so every push happens o
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Rulesets: main requires a pull request and blocks force-push and deletion; all tags block every push
+- [x] #1 Rulesets: main requires a pull request and blocks force-push and deletion; all tags block every push
 - [ ] #2 The devcontainer applies the spec's 'How the credential reaches the container' and 'Where the shared clones live', as plcc-ng's does
 - [ ] #3 bin/install/shared-clones.bash clones dev and change-requests idempotently under flock
 - [ ] #4 .claude/settings.json denies the commands the spec lists
@@ -37,4 +37,6 @@ Nobody can push from inside plcc-ng-demo's devcontainer, so every push happens o
 
 <!-- SECTION:NOTES:BEGIN -->
 2026-10-13: AC 7 narrowed from the full Verification checklist on three hosts to a smoke test, by the maintainer's decision; CR-1027 runs the full checklist.
+
+AC 1 met by CR-1031's work (2026-10-13): plcc-ng-demo's main ruleset requires a PR and blocks force-push and deletion, and its tags ruleset blocks creation, update, and deletion; an org owner's direct push to main and tag push were both rejected.
 <!-- SECTION:NOTES:END -->
