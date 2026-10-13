@@ -4,12 +4,13 @@ title: Push from the devcontainer through gh and shared volumes
 status: To Do
 assignee: []
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-13 17:32'
+updated_date: '2026-10-13 18:49'
 labels: []
 dependencies:
   - CR-1021
   - CR-1022
   - CR-1023
+  - CR-1026
 references:
   - ../../dev-docs/specs/2026-10-13-devcontainer-permissions-design.md
 type: chore
