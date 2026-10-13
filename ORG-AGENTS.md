@@ -19,3 +19,8 @@ because the reader is an agent.
   (`backlog task edit CR-N --append-notes "…"`), never as new CRs.
 - When closing the CR, triage those notes with the human: new draft, new CR,
   fold into an existing CR, or drop.
+- Never merge a pull request.
+- Never run `gh auth login`, `gh auth refresh`, or `gh auth token`; if `gh`
+  is not logged in, stop and tell the human.
+- Push `change-requests` only through `dev`'s `bin/push.bash`, and only to
+  publish tracker changes the human approved.
