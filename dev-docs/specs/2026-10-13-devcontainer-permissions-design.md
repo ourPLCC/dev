@@ -319,9 +319,17 @@ Every devcontainer replaces the host clone and bind mount with two volumes:
   `/workspaces/change-requests`, and the repo's own workspace.
 - **`bin/install/shared-clones.bash`**, a copy in each repo's `bin/install/`
   (it must exist before `dev` does), run from `postCreateCommand` and again
-  from `postStartCommand`. Idempotent. Under `flock` on a lock file in the
-  `dev` volume, so two containers created at once do not clone into the same
-  directory. For each of the two volumes:
+  from `postStartCommand`. Idempotent. Under `flock /workspaces/dev`, so two
+  containers created at once do not clone into the same directory. The lock
+  is the volume's mount point itself, not a file in it: a file there would
+  dirty `dev`'s working tree and be moved aside as a leftover before the
+  clone, and the mount point exists before anything is cloned. Every holder
+  takes it as `flock -o -w 120 /workspaces/dev <command>`, never by opening a
+  descriptor in its own shell: a child that outlives the holder, such as the
+  `git maintenance` a fetch detaches into the background, would inherit that
+  descriptor and keep the lock. `-o` keeps the descriptor in `flock` alone;
+  `-w 120` turns a stuck holder into an error instead of a silent wait. For
+  each of the two volumes:
   - chown it to the container user;
   - if it has no `.git`, or `git rev-parse HEAD` fails in it (an interrupted
     clone), clone the repo into it, moving any leftover aside first.
@@ -340,20 +348,37 @@ Every devcontainer replaces the host clone and bind mount with two volumes:
   `X.Y.Z` version (it is passed to `npm i -g`), the `git status` assertions,
   and the repo's own installs. `postStartCommand` warns when the installed
   `backlog --version` differs from `.backlog-version`.
-- Every image has `python3`, since the hooks run in every container.
+- Every image has `python3`, since the hooks run in every container, and
+  `flock` (util-linux), since every container takes the lock.
 
 **Pushing tracker changes.** Every push of `change-requests` goes through
-`dev`'s `bin/push.bash`. Under the same `flock` as the clone, so it cannot run
-while another container pushes, it fetches, rebases onto `origin/main`, runs
-`dev`'s `bin/check.py --pre-push` against `change-requests`, and pushes. Push
-after every tracker change: the volume is not a backup.
+`dev`'s `bin/push.bash`. Under the same `flock /workspaces/dev` as the clone,
+so it cannot run while another container pushes, it fetches, rebases onto
+`origin/main`, runs `dev`'s `bin/check.py --pre-push --root` against
+`change-requests`, and pushes. It finds `check.py` from its own location, and
+an environment variable overrides the `change-requests` path, for tests. It
+exits non-zero, saying why, and pushes nothing when:
+
+- `change-requests` has uncommitted changes (it does not stash them);
+- the rebase conflicts (it aborts the rebase, keeping the local commits);
+- `check.py` fails, for example on a duplicate ID after the rebase (fix with
+  `backlog doctor --fix`, then run it again);
+- the push is rejected because another push landed after the fetch (run it
+  again; it does not retry).
+
+With nothing to push, it exits zero. Push after every tracker change: the
+volume is not a backup.
 
 **Sharing and collisions.** Locally, every ourPLCC container shares one
 `change-requests` working tree, as with the bind mount, so one person's
 sessions on one machine never allocate the same ID. Backlog.md's auto-commits
 from two containers can still contend for `.git/index.lock`, as they could
-with the bind mount; the lock makes a pull-and-rebase no more dangerous than
-that. Two Codespaces, or a Codespace and a local container, are two trees, so
+with the bind mount. The lock does not cover them: Backlog.md does not take
+it. A tracker edit from another container while `bin/push.bash` rebases can
+land mid-rebase, and the rebase can then drop that commit. The window is a
+second or two; wrapping `backlog` to take the lock is not worth it. Instead
+the tracker guide says not to edit the tracker from another container while a
+push runs. Two Codespaces, or a Codespace and a local container, are two trees, so
 one person can collide with themselves there; `bin/check.py` and
 `backlog doctor --fix` handle it as they handle collisions between people.
 
@@ -429,16 +454,22 @@ describes the volumes in place of the `../dev` clone, and drops plcc-ng's
 ## Rollout
 
 1. **GitHub-side settings**, by an org owner: tokens, workflow defaults, the
-   `release` and `pypi` environments, and the rulesets, together with each
-   repo's workflow changes in "Repos that release differently". Until these
-   are in, no container gets push access.
+   `release` and `pypi` environments, and the rulesets of every repo except
+   `dev` and `change-requests`, together with each repo's workflow changes in
+   "Repos that release differently". Until these are in, no container gets
+   push access. `dev`'s `main` ruleset must not be applied here: nobody
+   bypasses it, so tracker pushes from the host to `dev` would stop before the
+   split. The split's cutover applies `dev`'s and `change-requests`' rulesets.
 2. **Split `ourPLCC/change-requests` out of `dev`**, under its own spec and CR
    in `dev`: create the repo, move `backlog/` with its history, rewrite CR
    references whose relative depth changes, point `dev`'s check CI and
    `bin/check.py` at the new repo, and keep `change-requests` free of code.
    Creating `ourPLCC/change-requests` ends GitHub's redirect from that old
-   name to `dev`; the split's spec says which old links that breaks.
+   name to `dev`; the split's spec says which old links that breaks. The
+   split is a coordinated cutover in one sitting, and steps 3 and 4 merge
+   inside it.
 3. **`dev`**: `bin/push.bash`, the documentation changes, `.gitattributes`.
+   Prepared before the cutover, merged in it after the split.
 4. **Every repo that mounts `../dev`** — plcc-ng, languages-ng, plcc-ng-demo,
    plcc-ng-devcontainer, and any repo that adopts the shared setup later — one
    CR each: the devcontainer changes in "How the credential reaches the
@@ -446,16 +477,22 @@ describes the volumes in place of the `../dev` clone, and drops plcc-ng's
    `bin/install/shared-clones.bash`, `.claude/settings.json`'s deny rules,
    `.gitattributes`, and its `CONTRIBUTING.md`. course-materials-ng's
    devcontainer does not use the shared setup, so it needs only step 1 until it
-   adopts it.
-5. **Contributors migrate** only once every CR in step 4 has merged. Until
-   then an unmigrated devcontainer, or an old branch of a migrated one,
-   recreates `../dev` on the host, and one person has two tracker trees.
+   adopts it. Each is prepared before the cutover and merged in it, after
+   step 3. The "Open checks" are settled on the first repo's branch before the
+   cutover; none of them needs `change-requests`. The "Verification" checklist
+   needs `change-requests`, so it runs after the cutover, and each of these
+   CRs closes once it passes rather than at merge.
+5. **Contributors migrate.** For the contributor who runs the cutover, the
+   cutover is the migration. Anyone else migrates after it.
 
 ## Migration, once per contributor
 
-1. In the host's `../dev`, confirm nothing is unpushed: `git status`,
-   `git log --branches --not --remotes`, `git worktree list`, and
-   `git stash list` all come back clean. Push or discard what they show.
+1. **Before the cutover's freeze**, in the host's `../dev`, confirm nothing is
+   unpushed: `git status`, `git log --branches --not --remotes`,
+   `git worktree list`, and `git stash list` all come back clean. Push or
+   discard what they show. After the split, `dev`'s `main` rejects direct
+   pushes, so a tracker commit still unpushed then must be re-entered by hand
+   in `change-requests`.
 2. Create the token and wait for its approval.
 3. Rebuild one ourPLCC container. It clones `dev` and `change-requests` into
    their volumes. Run `gh auth login --with-token`, then check that
@@ -512,6 +549,8 @@ contradicts this spec is fixed here, before the spec is frozen.
   `GITHUB_TOKEN` is refreshed. If not, the helper becomes a small script that
   defers to Codespaces' own helper when `$CODESPACES` is set.
 - Codespaces honors `type=volume` mounts under `/workspaces`.
+- `flock /workspaces/dev` in one local container blocks it in another
+  container that mounts the same volume.
 
 ## Out of scope
 
