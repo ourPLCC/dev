@@ -167,14 +167,18 @@ Set by an org owner, before any container gets push access.
 - The org's default `GITHUB_TOKEN` permission is **read-only** (set
   2026-10-13), and GitHub Actions may not create or approve pull requests.
   Every workflow in every ourPLCC repo declares an explicit, minimal
-  `permissions:` block (for example `contents: read` for CI); today only
-  languages-ng's `test-languages.yaml` lacks one.
+  `permissions:` block (for example `contents: read` for CI). On 2026-10-13,
+  at least languages-ng's `test-languages.yaml`, plcc-ng's `ci.yml` and
+  `docs-tests.yml`, and dev's `check.yml` lack one.
 - Jobs that use a release GitHub App's secrets run in an environment
   `release`, whose deployment policy allows `main` and `v*` tags only; the
   secrets move from repository secrets into it. Code on any other branch
   cannot obtain the App's token, even through a dispatched run.
-- The `pypi` environment allows `v*` tags only and has the human as required
-  reviewer.
+- The `pypi` environment allows `main` and `v*` tags only and has the human
+  as required reviewer. It allows `main` because a release's publish job runs
+  in the workflow a push to `main` starts, and GitHub checks an environment's
+  policy against the run's ref, not the tag the job checks out. The required
+  reviewer, not the ref policy, is what stops an unapproved publish.
 - Every workflow that pushes `main`, `gh-pages`, or a tag does so with a
   release App's token, in the `release` environment, never with
   `GITHUB_TOKEN`, so the rulesets can name the App as their only bypass.
