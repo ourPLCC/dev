@@ -1,10 +1,11 @@
 ---
 id: CR-1025
 title: Apply GitHub-side protections for container push access
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@StoneyJackson'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-13 19:35'
+updated_date: '2026-10-13 20:13'
 labels: []
 dependencies: []
 references:
