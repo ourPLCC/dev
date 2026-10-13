@@ -1,9 +1,11 @@
 ---
 id: CR-1022
 title: Split tracker data into ourPLCC/change-requests
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@stoney'
 created_date: '2026-10-13 13:53'
+updated_date: '2026-10-13 14:35'
 labels: []
 dependencies: []
 references:
