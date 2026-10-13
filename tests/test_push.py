@@ -21,7 +21,10 @@ class PushTest(unittest.TestCase):
         self.tracker = self.tmp / "tracker"
         self.other = self.tmp / "other"
         # Isolate from the user's git config (signing, helpers, hooksPath).
-        self.env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+        self.lock_dir = self.tmp / "lock"
+        self.lock_dir.mkdir()
+        self.env = {k: v for k, v in os.environ.items()
+                    if not k.startswith(("GIT_", "OURPLCC_"))}
         self.env.update(
             GIT_CONFIG_GLOBAL=os.devnull,
             GIT_CONFIG_NOSYSTEM="1",
@@ -30,6 +33,7 @@ class PushTest(unittest.TestCase):
             GIT_COMMITTER_NAME="Test",
             GIT_COMMITTER_EMAIL="test@example.com",
             OURPLCC_CHANGE_REQUESTS=str(self.tracker),
+            OURPLCC_LOCK_DIR=str(self.lock_dir),
         )
         self.git("init", "-q", "--bare", "-b", "main", str(self.origin))
         seed = self.tmp / "seed"
@@ -155,13 +159,64 @@ class PushTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("not a git clone", result.stderr)
 
+    def test_empty_tracker_dir_explains(self):
+        self.env["OURPLCC_CHANGE_REQUESTS"] = str(self.lock_dir)
+        result = self.run_push()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("not a git clone", result.stderr)
+
+    def test_unfinished_clone_explains(self):
+        partial = self.tmp / "partial"
+        self.git("init", "-q", "-b", "main", str(partial))
+        self.git("-C", str(partial), "remote", "add", "origin", str(self.origin))
+        self.env["OURPLCC_CHANGE_REQUESTS"] = str(partial)
+        result = self.run_push()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("not a git clone", result.stderr)
+
+    def test_rebase_failing_without_conflict_explains(self):
+        self.add_cr(self.other, 1001)
+        self.push_other()
+        self.add_cr(self.tracker, 1000)
+        (self.tracker / ".git" / "index.lock").write_text("")
+        result = self.run_push()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("push.bash: rebase onto origin/main failed", result.stderr)
+        self.assertFalse((self.tracker / ".git" / "rebase-merge").exists())
+        self.assertNotIn("CR-1000", self.origin_log())
+
+    def test_rebase_in_progress_says_finish_it(self):
+        self.write(self.other, "backlog/config.yml", CONFIG + "statuses: [a]\n")
+        self.commit(self.other, "Other config")
+        self.push_other()
+        self.write(self.tracker, "backlog/config.yml", CONFIG + "statuses: [b]\n")
+        self.commit(self.tracker, "Tracker config")
+        self.git("-C", str(self.tracker), "fetch", "-q")
+        subprocess.run(["git", "-C", str(self.tracker), "rebase", "origin/main"],
+                       env=self.env, capture_output=True)
+        result = self.run_push()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("a rebase is in progress", result.stderr)
+        self.assertTrue((self.tracker / ".git" / "rebase-merge").exists())
+
+    def test_failed_push_points_at_git_and_the_token(self):
+        hook = self.origin / "hooks" / "pre-receive"
+        hook.parent.mkdir(exist_ok=True)
+        hook.write_text("#!/bin/sh\nexit 1\n")
+        hook.chmod(0o755)
+        self.add_cr(self.tracker, 1000)
+        result = self.run_push()
+        self.assertIn("see git's message above", result.stderr)
+        self.assertIn("authentication", result.stderr)
+
     def test_waits_for_the_lock(self):
         self.add_cr(self.tracker, 1000)
-        fd = os.open(ROOT, os.O_RDONLY)
+        fd = os.open(self.lock_dir, os.O_RDONLY)
         try:
             fcntl.flock(fd, fcntl.LOCK_EX)
             proc = subprocess.Popen([str(PUSH)], env=self.env,
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            self.addCleanup(proc.kill)
             time.sleep(0.5)
             self.assertIsNone(proc.poll(), "push.bash ran while the lock was held")
             self.assertNotIn("CR-1000", self.origin_log())
@@ -175,7 +230,7 @@ class PushTest(unittest.TestCase):
     def test_gives_up_on_a_stuck_lock(self):
         self.add_cr(self.tracker, 1000)
         self.env["OURPLCC_LOCK_WAIT"] = "1"
-        fd = os.open(ROOT, os.O_RDONLY)
+        fd = os.open(self.lock_dir, os.O_RDONLY)
         try:
             fcntl.flock(fd, fcntl.LOCK_EX)
             result = self.run_push()
@@ -195,7 +250,7 @@ class PushTest(unittest.TestCase):
         self.add_cr(self.tracker, 1000)
         result = self.run_push()
         self.assertEqual(result.returncode, 0, result.stderr)
-        fd = os.open(ROOT, os.O_RDONLY)
+        fd = os.open(self.lock_dir, os.O_RDONLY)
         try:
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)  # raises if still held
             fcntl.flock(fd, fcntl.LOCK_UN)

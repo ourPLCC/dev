@@ -125,7 +125,10 @@ beside the code repos, and tracker changes were pushed from there. Move once:
 3. Rebuild one ourPLCC container; it clones `dev` and `change-requests` into
    their volumes. Run `gh auth login --with-token`, then push your next
    tracker change with `/workspaces/dev/bin/push.bash`.
-4. On a Windows host, check out each code repo again
-   (`git rm -r --cached -q . && git reset --hard`), or clone it fresh.
+4. On a Windows host, once each code repo's branch has the
+   `* text=auto eol=lf` line in its `.gitattributes`, commit or stash your
+   work there, since the next command discards uncommitted changes. Then
+   check the repo out again (`git rm -r --cached -q . && git reset --hard`),
+   or clone it fresh.
 5. Delete the host's `../dev`. Do not check out a branch of any repo from
    before the move, or its devcontainer recreates `../dev`.
