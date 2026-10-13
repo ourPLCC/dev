@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-13 19:24'
+updated_date: '2026-10-13 19:29'
 labels: []
 dependencies: []
 references:
@@ -25,7 +25,7 @@ Devcontainers are getting push access through a fine-grained token that any agen
 <!-- AC:BEGIN -->
 - [ ] #1 Rulesets: main requires a pull request and blocks force-push and deletion; all tags block every push; the repo's release App is the only bypass actor
 - [x] #2 The CR records whether the repo keeps its own App or adopts the shared release App, and why
-- [ ] #3 The App's secrets live in a release environment limited to main and release tags
+- [x] #3 The App's secrets live in a release environment limited to main and release tags
 - [ ] #4 A release run after the change publishes its images and feature
 <!-- AC:END -->
 
@@ -37,4 +37,6 @@ From CR-1023's triage (2026-10-13): the shared ourPLCC Release Bot App is instal
 AC 2 (2026-10-13): plcc-ng-devcontainer adopts the shared ourPLCC Release Bot. It already uses it: the Release Bot is the only GitHub App installed on the repo, so its APP_ID and APP_PRIVATE_KEY secrets are the Release Bot's. Keeping one App means one bypass actor for every repo's rulesets. The secret names stay APP_ID and APP_PRIVATE_KEY, to keep the workflow change to adding environment: release.
 
 Post-merge checks (2026-10-13), PR #18 merged as a73966c: Release run 38454274118 minted the App token in the release environment in both plan and release, cut no version (ci: commit), skipped the image builds and publish-images, and republished nothing new for the feature. A manual Check plcc-ng Release run 38454491232 on main minted the token in the release environment and succeeded. Remaining: delete the APP_ID and APP_PRIVATE_KEY repository secrets; set the default branch ruleset's bypass to the Release Bot only; add the All tags ruleset.
+
+AC 3 evidence (2026-10-13): APP_ID and APP_PRIVATE_KEY exist only as environment secrets of release (limited to main and v*); the repository-level copies are deleted.
 <!-- SECTION:NOTES:END -->
