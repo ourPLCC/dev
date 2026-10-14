@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@StoneyJackson'
 created_date: '2026-10-13 13:53'
-updated_date: '2026-10-13 18:52'
+updated_date: '2026-10-14 22:45'
 labels: []
 dependencies: []
 references:
@@ -50,4 +50,6 @@ AC 3 evidence (2026-10-13): plcc-ng's release environment allows main and v* and
 Triage (2026-10-13): the check.yml gap is folded into CR-1022 as a new AC. The plcc-ng-devcontainer half of the cross-repo key gap belongs to CR-1026 (AC #3), noted there; CR-1027 now depends on CR-1026. The plcc-devcontainer half is AC #7 here.
 
 AC 7 evidence: ourPLCC/plcc-devcontainer is archived (public API, 2026-10-13).
+
+Side effect (2026-10-14): restricting classic tokens (AC 1) stopped Alain Kägi pushing to course-materials-ng, which he does with a personal token. Fixed by approving his fine-grained token 21150509 (owner alainkaegi; course-materials-ng only; Contents read/write). Contributors who push with classic tokens need a fine-grained token approved, or browser sign-in through gh or Git Credential Manager.
 <!-- SECTION:NOTES:END -->
