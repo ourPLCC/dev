@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-26 18:58'
+updated_date: '2026-10-26 19:10'
 labels: []
 dependencies:
   - CR-1021
@@ -56,4 +56,6 @@ From CR-1021's final review: bin/install/shared-clones.bash must take the shared
 2026-10-26 B2 (open check 1) FAILS the strong test: SSH_AUTH_SOCK is empty and ssh-add finds no agent by default, but VS Code still creates /tmp/vscode-ssh-auth-<uuid>.sock in the container, and SSH_AUTH_SOCK=<that socket> ssh-add -l reaches the host agent ('The agent has no identities', exit 1). So an empty SSH_AUTH_SOCK hides the agent but doesn't block it. Two web searches found no documented Dev Containers setting that turns the forwarding off. Lock entry for github-cli committed (468ba608, unpushed).
 
 2026-10-26 B2 follow-up: a new terminal does not recreate the socket, but a window reload does (new uuid). Maintainer chose both: postAttachCommand 'rm -f /tmp/vscode-ssh-auth-*.sock' (commit on branch, defense in depth; a race at attach and a process that survives a reload remain), AND amend the permissions spec's open check 1 plus dev's CONTRIBUTING.md (token section): VS Code always forwards the host agent and no setting turns it off, so contributors keep no GitHub-capable SSH key loaded in the host agent and use HTTPS with Git Credential Manager on the host. The spec and CONTRIBUTING edits go in dev PR #15 with the other open-check results.
+
+2026-10-26 B2 passes with the postAttachCommand (branch at 526eccbf): after a rebuild, once postStart finished, no socket; after a window reload, no socket. Residual risk for the spec amendment: postAttachCommand runs only after postStartCommand finishes, so on every container start the socket is reachable while postStart runs (minutes on first build while GHC installs), plus the attach race and a process that survives a reload.
 <!-- SECTION:NOTES:END -->
