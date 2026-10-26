@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-26 18:46'
+updated_date: '2026-10-26 18:50'
 labels: []
 dependencies:
   - CR-1021
@@ -52,4 +52,6 @@ From CR-1021's final review: bin/install/shared-clones.bash must take the shared
 2026-10-26: Task 6 done: branch pushed, draft PR https://github.com/ourPLCC/plcc-ng/pull/338 (merge only in CR-1022 cutover step 6). Next: Part B (open checks, human) in a separate test container, B1 first; no tracker edits or pushes there.
 
 2026-10-26 B1 passed (macOS host, test clone ~/cr-1027-test/plcc-ng): both volumes cloned and owned by vscode, dev at origin/main, change-requests hooksPath /workspaces/dev/.githooks, backlog 1.53.0 = pin; a rebuild kept both clones. First build's postStart failed in ghcup: Docker Desktop disk full (two plcc-ng containers each install GHC); docker builder prune freed 13 GB. Not caused by the branch. For B2: the Dev Containers CLI passes --remote-env SSH_AUTH_SOCK=/tmp/vscode-ssh-auth-*.sock, which may override devcontainer.json's empty SSH_AUTH_SOCK.
+
+2026-10-26 B2 (open check 1) FAILS the strong test: SSH_AUTH_SOCK is empty and ssh-add finds no agent by default, but VS Code still creates /tmp/vscode-ssh-auth-<uuid>.sock in the container, and SSH_AUTH_SOCK=<that socket> ssh-add -l reaches the host agent ('The agent has no identities', exit 1). So an empty SSH_AUTH_SOCK hides the agent but doesn't block it. Two web searches found no documented Dev Containers setting that turns the forwarding off. Lock entry for github-cli committed (468ba608, unpushed).
 <!-- SECTION:NOTES:END -->
