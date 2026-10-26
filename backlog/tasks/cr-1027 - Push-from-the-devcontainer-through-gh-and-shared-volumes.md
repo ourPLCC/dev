@@ -1,10 +1,11 @@
 ---
 id: CR-1027
 title: Push from the devcontainer through gh and shared volumes
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@stoney'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-13 20:38'
+updated_date: '2026-10-26 13:04'
 labels: []
 dependencies:
   - CR-1021
