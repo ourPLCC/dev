@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-26 19:20'
+updated_date: '2026-10-26 19:23'
 labels: []
 dependencies:
   - CR-1021
@@ -62,4 +62,6 @@ From CR-1021's final review: bin/install/shared-clones.bash must take the shared
 2026-10-26 B3 (open check 5) passes: while the test container held 'flock /workspaces/dev sleep 60', a second container on the ourplcc-dev volume (docker run debian:trixie flock -w 5 /workspaces/dev true) exited 1; with no holder, the same command exited 0 at once. The lock crosses containers on a shared volume (Docker Desktop, macOS).
 
 2026-10-26 B4 (Verification 10) passes: credential.https://github.com.helper lists only the empty reset and '!gh auth git-credential', both from the environment; gh not logged in; 'git push --dry-run' failed in 0.35 s with 'terminal prompts disabled', exit 128. No general credential.helper was installed by VS Code this time (likely git.terminalAuthentication/github.gitAuthentication false), so the reset was not exercised against one. The host's ~/.gitconfig was copied in, including an unrelated gitlab.com helper.
+
+For triage at close (maintainer wants it addressed eventually): VS Code copies the host's ~/.gitconfig into every container, so host-only config such as the gitlab.com helper reading $GITLAB_TOKEN rides along. Options to weigh: fix it on the host only (personal), or have ourPLCC containers stop copying it (VS Code user setting dev.containers.copyGitConfig). The latter also drops user.name/email and the GPG signing config the permissions spec relies on, so it would need a replacement.
 <!-- SECTION:NOTES:END -->
