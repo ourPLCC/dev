@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-26 19:17'
+updated_date: '2026-10-26 19:20'
 labels: []
 dependencies:
   - CR-1021
@@ -60,4 +60,6 @@ From CR-1021's final review: bin/install/shared-clones.bash must take the shared
 2026-10-26 B2 passes with the postAttachCommand (branch at 526eccbf): after a rebuild, once postStart finished, no socket; after a window reload, no socket. Residual risk for the spec amendment: postAttachCommand runs only after postStartCommand finishes, so on every container start the socket is reachable while postStart runs (minutes on first build while GHC installs), plus the attach race and a process that survives a reload.
 
 2026-10-26 B3 (open check 5) passes: while the test container held 'flock /workspaces/dev sleep 60', a second container on the ourplcc-dev volume (docker run debian:trixie flock -w 5 /workspaces/dev true) exited 1; with no holder, the same command exited 0 at once. The lock crosses containers on a shared volume (Docker Desktop, macOS).
+
+2026-10-26 B4 (Verification 10) passes: credential.https://github.com.helper lists only the empty reset and '!gh auth git-credential', both from the environment; gh not logged in; 'git push --dry-run' failed in 0.35 s with 'terminal prompts disabled', exit 128. No general credential.helper was installed by VS Code this time (likely git.terminalAuthentication/github.gitAuthentication false), so the reset was not exercised against one. The host's ~/.gitconfig was copied in, including an unrelated gitlab.com helper.
 <!-- SECTION:NOTES:END -->
