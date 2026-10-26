@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-26 23:11'
+updated_date: '2026-10-26 23:15'
 labels: []
 dependencies:
   - CR-1021
@@ -80,4 +80,6 @@ Open check 3 finding: Codespaces' own git helper (/.codespaces/bin/gitcredential
 Open check 3 closed: at 2026-10-26 23:08:20 UTC, shortly after a Codespace restart, the API reported github-authentication-token-expiration 2026-10-27 11:03:26 UTC, so the Codespaces token lasts about 12 hours from issue. Since a restart issues a new token and kills every shell, only a process that runs over 12 hours in one uninterrupted Codespace session meets an expired token, and stock Codespaces tooling fails the same way. Spec amendment: drop the fallback helper; add one docs line, 'In a Codespace, a terminal or agent session older than about 12 hours has an expired token; open a new terminal, or restart the Codespace.' Not tested: whether new terminals get a refreshed token before a restart (not needed for the docs line).
 
 Correction to the check 3 notes: the helper script and expiry header were read in a Codespace for another repo (_rehearsal), not plcc-ng's. Both are Codespaces platform behavior, so the findings stand, but '12 hours' assumes that Codespace's token was issued just before 23:08 UTC; if it had been running longer, the lifetime is longer. During Part C's new-Codespace verification, rerun the expiry curl right after start to confirm.
+
+Part B done 2026-10-26: all open checks run and recorded. Cleanup done: Codespaces deleted; test container hopeful_ellis, ~/cr-1027-test (clean, even with origin), and volumes ourplcc-dev, ourplcc-change-requests, ourplcc-gh removed. Next: amend the permissions spec and dev's CONTRIBUTING.md in dev PR #15 from these notes.
 <!-- SECTION:NOTES:END -->
