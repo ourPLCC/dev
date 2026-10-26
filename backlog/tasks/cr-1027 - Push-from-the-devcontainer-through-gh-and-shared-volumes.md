@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-26 19:26'
+updated_date: '2026-10-26 19:35'
 labels: []
 dependencies:
   - CR-1021
@@ -66,4 +66,6 @@ From CR-1021's final review: bin/install/shared-clones.bash must take the shared
 For triage at close (maintainer wants it addressed eventually): VS Code copies the host's ~/.gitconfig into every container, so host-only config such as the gitlab.com helper reading $GITLAB_TOKEN rides along. Options to weigh: fix it on the host only (personal), or have ourPLCC containers stop copying it (VS Code user setting dev.containers.copyGitConfig). The latter also drops user.name/email and the GPG signing config the permissions spec relies on, so it would need a replacement.
 
 2026-10-26 B5: Codespace on the branch. The permissions prompt offered ourPLCC/dev Contents write (plus mandatory Metadata read) and listed ourPLCC/change-requests Contents write as 'not available' (the repo doesn't exist yet; the grant doesn't follow the redirect to dev). Authorized. C4 must confirm a Codespace created after the cutover gets the change-requests grant.
+
+2026-10-26 B5 open check 4 passes: in a Codespace, /workspaces/dev and /workspaces/change-requests are Docker volumes (/volumes/ourplcc-*/_data), dev cloned at origin/main, gh logged in via the Codespace GITHUB_TOKEN (ghu_) with no login. Open check 2, part a: the Codespace token CAN push a .github/workflows/ change (pushed branch cr-1027-probe-workflow, exit 0; branch then deleted). Spec's table must record this difference for Codespaces; bounded because CI runs only on pull_request with read-only GITHUB_TOKEN and release secrets live in the release environment (main and v* only).
 <!-- SECTION:NOTES:END -->
