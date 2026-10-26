@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-26 20:21'
+updated_date: '2026-10-26 23:07'
 labels: []
 dependencies:
   - CR-1021
@@ -74,4 +74,6 @@ For triage at close (maintainer wants it addressed eventually): VS Code copies t
 2026-10-26 B5 open check 3 started: Codespace terminal left open, GITHUB_TOKEN fingerprint (sha256, first 8) 8f433a70 at 19:42:51 UTC. Later: compare with a new terminal's fingerprint; in the old terminal run gh api user and git ls-remote origin. Settled when the fingerprint has changed and the old terminal still works.
 
 2026-10-26 B5: the Codespace stopped on its own around 20:10 UTC (not billing: Codespaces usage $2.33, all within the included allowance) and cycled 'restarting'/'stopping' until it was reopened from github.com/codespaces; cause unknown, probably the idle timeout. After the restart: ourplcc-dev volume intact with dev's clone (003ca79), so volumes survive a Codespace restart. GITHUB_TOKEN fingerprint changed 8f433a70 -> 04e111bb (20:21:41 UTC), so a restart issues a new token. Open check 3 restarted from 04e111bb.
+
+Open check 3 finding: Codespaces' own git helper (/.codespaces/bin/gitcredential_github.sh, set in system gitconfig) just echoes $GITHUB_TOKEN from the caller's environment when url matches $GITHUB_SERVER_URL. It fetches nothing. So it is exactly as stale as gh auth git-credential in a long-lived shell, and the spec's fallback (defer to Codespaces' helper when $CODESPACES is set) buys nothing: drop it from the spec. Our setup behaves like stock Codespaces for token freshness. Overnight loop abandoned: the Codespace suspends without browser activity, and a restart issues a new token, so a shell cannot outlive the token in practice unless a session stays active longer than the token's lifetime. Still to learn: whether the token has an expiry (github-authentication-token-expiration header).
 <!-- SECTION:NOTES:END -->
