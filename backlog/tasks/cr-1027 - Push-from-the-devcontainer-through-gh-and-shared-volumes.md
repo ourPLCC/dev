@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-26 13:27'
+updated_date: '2026-10-26 18:08'
 labels: []
 dependencies:
   - CR-1021
@@ -48,4 +48,6 @@ From CR-1021's final review: bin/install/shared-clones.bash must take the shared
 2026-10-26: started on plcc-ng branch cr-1027-push-from-devcontainer; plan in .plans/2026-10-26-cr-1027-push-from-devcontainer.md. Next: Part A Task 1 (bin/install/backlog.bash).
 
 2026-10-26: Part A (Tasks 1-5) done on plcc-ng branch cr-1027-push-from-devcontainer, 6 commits, unpushed; final review clean after one fix; commands tier 332/332, units and docs green. Deferred minors from the review: clone killed mid-checkout passes as complete; CONTRIBUTING offline recovery should also say rerun bin/install/backlog.bash; backlog.bash --check can exit non-zero if backlog --version fails; CONTRIBUTING 'token of your own' untrue in a Codespace; install-helpers row should say 'clean checkout of main'; a hanging fetch holds the shared lock until TCP timeout. devcontainer-lock.json lacks the github-cli entry until the first rebuild (Part B1): commit it then. Next: Task 6 (human, on the host): push the branch and open a draft PR.
+
+2026-10-26: Task 6 done: branch pushed, draft PR https://github.com/ourPLCC/plcc-ng/pull/338 (merge only in CR-1022 cutover step 6). Next: Part B (open checks, human) in a separate test container, B1 first; no tracker edits or pushes there.
 <!-- SECTION:NOTES:END -->
