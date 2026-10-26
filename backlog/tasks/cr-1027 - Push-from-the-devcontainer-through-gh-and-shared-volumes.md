@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-26 19:10'
+updated_date: '2026-10-26 19:17'
 labels: []
 dependencies:
   - CR-1021
@@ -58,4 +58,6 @@ From CR-1021's final review: bin/install/shared-clones.bash must take the shared
 2026-10-26 B2 follow-up: a new terminal does not recreate the socket, but a window reload does (new uuid). Maintainer chose both: postAttachCommand 'rm -f /tmp/vscode-ssh-auth-*.sock' (commit on branch, defense in depth; a race at attach and a process that survives a reload remain), AND amend the permissions spec's open check 1 plus dev's CONTRIBUTING.md (token section): VS Code always forwards the host agent and no setting turns it off, so contributors keep no GitHub-capable SSH key loaded in the host agent and use HTTPS with Git Credential Manager on the host. The spec and CONTRIBUTING edits go in dev PR #15 with the other open-check results.
 
 2026-10-26 B2 passes with the postAttachCommand (branch at 526eccbf): after a rebuild, once postStart finished, no socket; after a window reload, no socket. Residual risk for the spec amendment: postAttachCommand runs only after postStartCommand finishes, so on every container start the socket is reachable while postStart runs (minutes on first build while GHC installs), plus the attach race and a process that survives a reload.
+
+2026-10-26 B3 (open check 5) passes: while the test container held 'flock /workspaces/dev sleep 60', a second container on the ourplcc-dev volume (docker run debian:trixie flock -w 5 /workspaces/dev true) exited 1; with no holder, the same command exited 0 at once. The lock crosses containers on a shared volume (Docker Desktop, macOS).
 <!-- SECTION:NOTES:END -->
