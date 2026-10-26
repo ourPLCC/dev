@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-26 19:43'
+updated_date: '2026-10-26 20:21'
 labels: []
 dependencies:
   - CR-1021
@@ -72,4 +72,6 @@ For triage at close (maintainer wants it addressed eventually): VS Code copies t
 2026-10-26 B5 open check 2, parts b-d: (b) tag push rejected by the tag ruleset (GH013, creations restricted); (c) fast-forward push to gh-pages rejected by the gh-pages ruleset (GH013, cannot update protected ref); (d) the Codespace token CAN create a draft release (untagged, private, triggers nothing; deleted after). Contents write likely allows the same with the local token, so it may not be Codespaces-specific; publishing creates the tag, which the tag ruleset should stop. Publish not tested (a tag that got through couldn't be deleted without editing the ruleset); Verification 7 in Part C covers gh release create for a new tag. Spec amendment: the table's tag row should say drafts are possible and the tag ruleset is the gate.
 
 2026-10-26 B5 open check 3 started: Codespace terminal left open, GITHUB_TOKEN fingerprint (sha256, first 8) 8f433a70 at 19:42:51 UTC. Later: compare with a new terminal's fingerprint; in the old terminal run gh api user and git ls-remote origin. Settled when the fingerprint has changed and the old terminal still works.
+
+2026-10-26 B5: the Codespace stopped on its own around 20:10 UTC (not billing: Codespaces usage $2.33, all within the included allowance) and cycled 'restarting'/'stopping' until it was reopened from github.com/codespaces; cause unknown, probably the idle timeout. After the restart: ourplcc-dev volume intact with dev's clone (003ca79), so volumes survive a Codespace restart. GITHUB_TOKEN fingerprint changed 8f433a70 -> 04e111bb (20:21:41 UTC), so a restart issues a new token. Open check 3 restarted from 04e111bb.
 <!-- SECTION:NOTES:END -->
