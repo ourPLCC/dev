@@ -190,11 +190,11 @@ Per repo: org rulesets need GitHub Team, which ourPLCC does not have.
 "Apply the rulesets" is therefore a step in creating any ourPLCC repo. The
 release Apps are the only bypass actors; nobody else bypasses, org owners
 included, with one exception: course-materials-ng's `main` also lets its
-maintainer Alain Kägi (`alainkaegi`) bypass, because he maintains it by
-pushing to `main` directly. Its `main` still needs the ruleset for everyone
-else: `deploy.yml` runs on every push to `main` with the release App's token,
-which reaches every repo in the App's installation. The remaining risk is
-that one contributor's token.
+maintainer bypass, because they maintain it by pushing to `main` directly.
+Its `main` still needs the ruleset for everyone else: `deploy.yml` runs on
+every push to `main` with the release App's token, which reaches every repo
+in the App's installation. The remaining risk is that one contributor's
+token.
 
 - **`main`**, every repo except `change-requests` (`dev` included): require a
   pull request, block force-pushes, block deletion.
