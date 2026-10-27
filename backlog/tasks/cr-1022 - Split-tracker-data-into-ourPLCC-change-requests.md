@@ -43,4 +43,6 @@ Cutover step 6 merges dev PR #15 (CR-1021: bin/push.bash and the docs). It is ba
 Folded in from CR-1023's triage (2026-10-13): dev's .github/workflows/check.yml has no permissions block, though the devcontainer permissions spec requires one in every ourPLCC workflow. This CR already reworks dev's CI.
 
 2026-10-27: cutover prerequisite 3 (link search) run. GitHub search of the org (code, issues, PRs) and a local search of dev and plcc-ng found no URL under the old name into dev's own content. Gap in the split spec's 'Old links': it covers URLs, not short references like ourPLCC/change-requests#N, which after the split point at change-requests' issue or PR N instead of dev's. One found and fixed: CR-1007's final summary now says ourPLCC/dev#1. Before the freeze, rerun the search including short references (grep -rn 'change-requests#' backlog/ in dev, and GitHub search), and consider amending the spec's 'Old links' to name them.
+
+Correction: CR-1007 is not fixed yet. It is in backlog/completed/, and the backlog CLI cannot edit completed CRs (task edit says 'Task not found'). Options: the maintainer edits that one line by hand, or split_links rewrites ourPLCC/change-requests#N to ourPLCC/dev#N during cutover step 3.
 <!-- SECTION:NOTES:END -->
