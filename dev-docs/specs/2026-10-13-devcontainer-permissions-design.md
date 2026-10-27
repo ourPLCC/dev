@@ -98,6 +98,7 @@ below narrows it.
 | Force-push or delete `change-requests`' `main` | no | no | branch ruleset |
 | Push to any other repo's `main` (`dev` included), or to `gh-pages` | no | no | branch rulesets |
 | Push, move, or delete a tag | no | no | tag rulesets |
+| Create, edit, or delete a draft release | yes | yes | — (publishing one creates its tag, which the tag rulesets block) |
 | Open, update, comment on, or close a PR | yes | yes | — |
 | Merge a PR | yes | **no** | ORG-AGENTS.md and Claude Code deny rules only |
 | Publish a package | no | no | `pypi` environment's required reviewer |
@@ -273,9 +274,21 @@ Codespaces GPG verification for ourPLCC repos, and are unsigned otherwise.
   `"git.terminalAuthentication": false` and `"github.gitAuthentication": false`
   in `customizations.vscode.settings`. A push with no token fails instead of
   borrowing an unscoped one.
-- Does not expose the host's SSH agent: SSH remotes would push with the host's
-  keys, unscoped. The likely mechanism is `"remoteEnv": {"SSH_AUTH_SOCK": ""}`;
-  see "Open checks".
+- Hides the host's SSH agent, which SSH remotes would push through with the
+  host's keys, unscoped. VS Code forwards the agent into every container as
+  `/tmp/vscode-ssh-auth-<uuid>.sock`, recreates the socket on every window
+  reload, and has no setting that turns this off. So the devcontainer sets
+  `"remoteEnv": {"SSH_AUTH_SOCK": ""}`, which stops `git` and `ssh` finding
+  the agent by default, and
+  `"postAttachCommand": "rm -f /tmp/vscode-ssh-auth-*.sock"`, which removes
+  the socket after each attach. That leaves the socket reachable while
+  `postStartCommand` runs, on every start (Dev Containers runs
+  `postAttachCommand` only after it), in the moment between an attach and
+  the removal, and to a process that survives a window reload. Hiding the
+  agent is therefore not the boundary. The rule is: keep no SSH key that
+  GitHub accepts loaded in the host's agent, and use HTTPS with Git
+  Credential Manager on the host. That rests on the contributor, and
+  `CONTRIBUTING.md` says so.
 - Uses one `remoteUser`, `vscode`, with UID 1000, like every other ourPLCC
   devcontainer, because the shared volumes keep real UIDs.
 
@@ -309,7 +322,19 @@ same token.
   (for branches and PRs to `dev`); the Codespace's own repo is granted by
   default. GitHub asks for this grant when the Codespace is created. Choosing
   to continue without it leaves both read-only, so the docs say to authorize
-  it. A change to the grant reaches only Codespaces created afterwards.
+  it. A change to the grant reaches only Codespaces created afterwards. The
+  grant names a repo that must exist: before the split, GitHub lists
+  `ourPLCC/change-requests` as not available, and does not follow its
+  redirect to `dev`.
+- The token is fixed in each process's environment when the process starts,
+  and it expires about 12 hours after the Codespace starts; a restart issues
+  a new one. Codespaces' own credential helper reads the same environment
+  variable, so a stock Codespace behaves the same way, and deferring to it
+  would gain nothing. So once a Codespace has run about 12 hours, pushes and
+  `gh` may fail to authenticate until it restarts. Whether a new terminal
+  gets a fresh token sooner is untested. A Codespace stops after its idle
+  timeout, and a stop ends every process, so this takes a Codespace kept
+  active that long.
 - So in a Codespace the scope is that repo plus `dev` and `change-requests`,
   narrower than local. The table above still holds within that scope.
 
@@ -513,9 +538,13 @@ describes the volumes in place of the `../dev` clone, and drops plcc-ng's
 
 ## Verification
 
-Each code repo's CR passes this checklist in a local container on a Linux or
-macOS host, in a local container on a Windows host, and in a newly created
-Codespace.
+The first repo to adopt the shared setup, plcc-ng, passes this checklist in a
+local container on a Linux or macOS host, in a local container on a Windows
+host, and in a newly created Codespace. The other repos' devcontainer changes
+copy plcc-ng's, so each of their CRs instead passes a smoke test in a rebuilt
+local container: push a branch and open a PR with `gh`, list CRs with
+`backlog task list`, push a tracker change with `bin/push.bash`, and see a
+direct push to `main` rejected.
 
 Must succeed:
 
@@ -547,17 +576,22 @@ Must hold:
 
 ## Open checks
 
-Settled during step 1 of "Rollout" or the first repo's CR. A result that
-contradicts this spec is fixed here, before the spec is frozen.
+All settled on plcc-ng's branch before the split, on a macOS host and in a
+Codespace; the sections above already reflect each result.
 
-- `remoteEnv` with an empty `SSH_AUTH_SOCK` stops git and `ssh` from reaching
-  the forwarded agent; if not, another way to stop VS Code forwarding it.
-- The Codespace token cannot push workflow changes, create releases, or push
-  `gh-pages`. If it can, the table records the difference for Codespaces.
-- A long-running process in a Codespace keeps working after the Codespace's
-  `GITHUB_TOKEN` is refreshed. If not, the helper becomes a small script that
-  defers to Codespaces' own helper when `$CODESPACES` is set.
-- Codespaces honors `type=volume` mounts under `/workspaces`.
+- An empty `SSH_AUTH_SOCK` hides the forwarded agent but does not block it:
+  the socket stays in `/tmp`, and pointing `ssh-add` at it reaches the host.
+  Removing the socket in `postAttachCommand` closes that path except for the
+  gaps "Every devcontainer" lists, so the boundary is the rule about the
+  host's agent.
+- The Codespace token can push a change to `.github/workflows/` and create a
+  draft release; it cannot push a tag or push `gh-pages`, which the rulesets
+  reject. Publishing a release was not tried; Verification step 7 covers it.
+- A process in a Codespace keeps the token it started with, which expires
+  about 12 hours after the Codespace starts. Codespaces' own helper reads the
+  same variable, so the planned fallback to it is dropped.
+- Codespaces honors `type=volume` mounts under `/workspaces`, and they
+  survive a restart.
 - `flock /workspaces/dev` in one local container blocks it in another
   container that mounts the same volume.
 

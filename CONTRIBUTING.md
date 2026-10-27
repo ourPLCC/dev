@@ -85,6 +85,12 @@ repo you can reach. When the token expires, make a new one, have it approved,
 and load it again. To revoke it, delete it on GitHub; to forget it on one
 machine, run `docker volume rm ourplcc-gh` on the host.
 
+Keep no SSH key that GitHub accepts loaded in your host's SSH agent; on the
+host, use HTTPS with Git Credential Manager instead. VS Code forwards that
+agent into every container, no setting turns it off, and the devcontainer can
+only hide it, not block it, so a key there would let the container push
+anywhere you can.
+
 ### What the container cannot do
 
 From the container you can push branches, open and update pull requests, and
@@ -110,6 +116,9 @@ you create one, GitHub asks you to authorize access to `ourPLCC/dev` and
 `ourPLCC/change-requests`: authorize it, or both stay read-only and
 `bin/push.bash` fails. A full rebuild of a Codespace deletes its volumes and
 any tracker commits you have not pushed, so push right away.
+
+A Codespace's token expires about 12 hours after the Codespace starts. If a
+push or `gh` command then fails to authenticate, restart the Codespace.
 
 ### Moving from the host clone
 
