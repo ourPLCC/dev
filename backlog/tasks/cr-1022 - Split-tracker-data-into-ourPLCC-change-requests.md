@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:53'
-updated_date: '2026-10-13 18:49'
+updated_date: '2026-10-27 17:36'
 labels: []
 dependencies: []
 references:
@@ -41,4 +41,6 @@ Discovered during implementation (final review): (1) migrate/verify.py:65 runs t
 Cutover step 6 merges dev PR #15 (CR-1021: bin/push.bash and the docs). It is based on cr-1022-check-change-requests, so once the split's PR merges, its diff against main shrinks to CR-1021's own commits; merge it only after that.
 
 Folded in from CR-1023's triage (2026-10-13): dev's .github/workflows/check.yml has no permissions block, though the devcontainer permissions spec requires one in every ourPLCC workflow. This CR already reworks dev's CI.
+
+2026-10-27: cutover prerequisite 3 (link search) run. GitHub search of the org (code, issues, PRs) and a local search of dev and plcc-ng found no URL under the old name into dev's own content. Gap in the split spec's 'Old links': it covers URLs, not short references like ourPLCC/change-requests#N, which after the split point at change-requests' issue or PR N instead of dev's. One found and fixed: CR-1007's final summary now says ourPLCC/dev#1. Before the freeze, rerun the search including short references (grep -rn 'change-requests#' backlog/ in dev, and GitHub search), and consider amending the spec's 'Old links' to name them.
 <!-- SECTION:NOTES:END -->
