@@ -187,6 +187,13 @@ Creating `ourPLCC/change-requests` ends GitHub's redirect from that name to
   creating the repo, search GitHub for `ourPLCC/change-requests` across the
   org's code, issues, and pull requests, and repoint each hit at
   `ourPLCC/dev`.
+- **Point at the wrong thing:** short references under the old name,
+  `ourPLCC/change-requests#N`, which today mean `dev`'s issue or pull request
+  `N` and afterwards mean `change-requests`'. They hide in the tracker data
+  too, which moves to the new repo. Search for them with the URLs, and with
+  `grep -rn 'change-requests#[0-9]' backlog/` in `dev`, and rewrite each to
+  `ourPLCC/dev#N`. The CLI cannot edit a CR in `backlog/completed/`, so a
+  hit there is the one tracker edit made by hand.
 - **Clones whose `origin` uses the old name** (a host `../dev` cloned before
   the rename) would fetch the new repo. The rewritten hashes make a pull there
   fail on unrelated histories rather than delete `dev`'s files; the cutover
