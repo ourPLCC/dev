@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:53'
-updated_date: '2026-10-27 17:36'
+updated_date: '2026-10-27 17:43'
 labels: []
 dependencies: []
 references:
@@ -45,4 +45,6 @@ Folded in from CR-1023's triage (2026-10-13): dev's .github/workflows/check.yml 
 2026-10-27: cutover prerequisite 3 (link search) run. GitHub search of the org (code, issues, PRs) and a local search of dev and plcc-ng found no URL under the old name into dev's own content. Gap in the split spec's 'Old links': it covers URLs, not short references like ourPLCC/change-requests#N, which after the split point at change-requests' issue or PR N instead of dev's. One found and fixed: CR-1007's final summary now says ourPLCC/dev#1. Before the freeze, rerun the search including short references (grep -rn 'change-requests#' backlog/ in dev, and GitHub search), and consider amending the spec's 'Old links' to name them.
 
 Correction: CR-1007 is not fixed yet. It is in backlog/completed/, and the backlog CLI cannot edit completed CRs (task edit says 'Task not found'). Options: the maintainer edits that one line by hand, or split_links rewrites ourPLCC/change-requests#N to ourPLCC/dev#N during cutover step 3.
+
+CR-1007 fixed by the maintainer by hand (dev commit e4084d4); its final summary now references ourPLCC/dev#1. No other short reference to the old name remains in backlog/.
 <!-- SECTION:NOTES:END -->
