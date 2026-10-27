@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-26 23:15'
+updated_date: '2026-10-27 12:24'
 labels: []
 dependencies:
   - CR-1021
@@ -82,4 +82,6 @@ Open check 3 closed: at 2026-10-26 23:08:20 UTC, shortly after a Codespace resta
 Correction to the check 3 notes: the helper script and expiry header were read in a Codespace for another repo (_rehearsal), not plcc-ng's. Both are Codespaces platform behavior, so the findings stand, but '12 hours' assumes that Codespace's token was issued just before 23:08 UTC; if it had been running longer, the lifetime is longer. During Part C's new-Codespace verification, rerun the expiry curl right after start to confirm.
 
 Part B done 2026-10-26: all open checks run and recorded. Cleanup done: Codespaces deleted; test container hopeful_ellis, ~/cr-1027-test (clean, even with origin), and volumes ourplcc-dev, ourplcc-change-requests, ourplcc-gh removed. Next: amend the permissions spec and dev's CONTRIBUTING.md in dev PR #15 from these notes.
+
+2026-10-27: dev PR #15 amendments committed locally on cr-1021-push-from-container (7cd8fd6 merge of main, 662e85e open-check results, 26bf1aa Codespaces workflow gap), unpushed. Maintainer chose to record the gap (a workflow pushed from a Codespace can raise its own GITHUB_TOKEN permissions) and advise regular agent use in local containers only. For triage at close: CR-1030 (plcc-ng-devcontainer) may want its ghcr package to stop granting write to its repo's Actions, since packages: write is the gap that matters there.
 <!-- SECTION:NOTES:END -->
