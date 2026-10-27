@@ -29,5 +29,5 @@ project: dev
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
-Changed migrate/verify.py to read each migrated task's and draft's id from its frontmatter only; a file without one is reported as "<folder>/<file>: no id: line in frontmatter", the remaining files are still checked, and main() exits 1. Verified by migrate/tests/test_verify.py: test_verify_reports_files_without_id (task + draft, both reported), test_verify_ignores_id_line_outside_frontmatter, test_main_exits_nonzero_on_missing_id; all pass on merged main (PR ourPLCC/change-requests#1).
+Changed migrate/verify.py to read each migrated task's and draft's id from its frontmatter only; a file without one is reported as "<folder>/<file>: no id: line in frontmatter", the remaining files are still checked, and main() exits 1. Verified by migrate/tests/test_verify.py: test_verify_reports_files_without_id (task + draft, both reported), test_verify_ignores_id_line_outside_frontmatter, test_main_exits_nonzero_on_missing_id; all pass on merged main (PR ourPLCC/dev#1).
 <!-- SECTION:FINAL_SUMMARY:END -->
