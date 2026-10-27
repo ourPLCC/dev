@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-27 12:33'
+updated_date: '2026-10-27 12:50'
 labels: []
 dependencies:
   - CR-1021
@@ -86,4 +86,6 @@ Part B done 2026-10-26: all open checks run and recorded. Cleanup done: Codespac
 2026-10-27: dev PR #15 amendments committed locally on cr-1021-push-from-container (7cd8fd6 merge of main, 662e85e open-check results, 26bf1aa Codespaces workflow gap), unpushed. Maintainer chose to record the gap (a workflow pushed from a Codespace can raise its own GITHUB_TOKEN permissions) and advise regular agent use in local containers only. For triage at close: CR-1030 (plcc-ng-devcontainer) may want its ghcr package to stop granting write to its repo's Actions, since packages: write is the gap that matters there.
 
 For review at close: the Verification asymmetry. Only plcc-ng runs the full checklist on three hosts; CR-1028-CR-1030 run a smoke test, which checks a direct push to main but skips the other must-fail items (gh-pages, tags, workflow pushes, gh workflow run). Those rest on each repo's rulesets and token scope from CR-1023-CR-1026. Check whether those CRs proved each limit per repo; if not, add the missing must-fail items to the smoke test or to those CRs.
+
+2026-10-27: from reviewing what the public spec reveals. (1) Done: the spec no longer names the maintainer who bypasses course-materials-ng's main ruleset (dev commit a1172ae on cr-1021-push-from-container); CR-1023's and CR-1025's notes still name them, and the ruleset's bypass list is public through the rules API anyway, so left as is. (2) High priority at close: the Codespaces packages: write gap is specific, open, and documented publicly, and it reaches people who pull plcc-ng-devcontainer's images; fold it into CR-1030 with a criterion, rather than leave it as a note. (3) With the maintainer's approval, filed a draft for a security policy with private vulnerability reporting.
 <!-- SECTION:NOTES:END -->
