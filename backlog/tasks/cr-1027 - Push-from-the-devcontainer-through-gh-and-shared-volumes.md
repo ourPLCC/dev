@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-27 17:44'
+updated_date: '2026-10-27 17:47'
 labels: []
 dependencies:
   - CR-1021
@@ -90,4 +90,6 @@ For review at close: the Verification asymmetry. Only plcc-ng runs the full chec
 2026-10-27: from reviewing what the public spec reveals. (1) Done: the spec no longer names the maintainer who bypasses course-materials-ng's main ruleset (dev commit a1172ae on cr-1021-push-from-container); CR-1023's and CR-1025's notes still name them, and the ruleset's bypass list is public through the rules API anyway, so left as is. (2) High priority at close: the Codespaces packages: write gap is specific, open, and documented publicly, and it reaches people who pull plcc-ng-devcontainer's images; fold it into CR-1030 with a criterion, rather than leave it as a note. (3) With the maintainer's approval, filed a draft for a security policy with private vulnerability reporting.
 
 2026-10-27, for the maintainer's own migration (Part C): this old plcc-ng container's dev clone uses SSH remotes (git@github.com:ourPLCC/dev.git), and a fetch succeeded earlier today, so the host's SSH agent held a GitHub key and the container could reach it. That is exactly what the new CONTRIBUTING rule forbids. At migration: switch host clones to HTTPS with Git Credential Manager, and unload the GitHub key from the host agent.
+
+2026-10-27: the maintainer switched host clones to SSH because pushing over HTTPS failed. Likely cause, unconfirmed: the host's HTTPS credential is a classic PAT (osxkeychain), which CR-1023 blocked for the org. At migration: check git config --show-origin --get-all credential.helper on the host, install Git Credential Manager if missing, sign in through its browser flow (OAuth apps stay allowed), switch remotes back to HTTPS, then unload the GitHub key from the host agent. The permissions spec assumes the host has a working GCM; if this proves hard, CONTRIBUTING's migration steps need a host-HTTPS step.
 <!-- SECTION:NOTES:END -->
