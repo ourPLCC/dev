@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-27 12:50'
+updated_date: '2026-10-27 17:44'
 labels: []
 dependencies:
   - CR-1021
@@ -88,4 +88,6 @@ Part B done 2026-10-26: all open checks run and recorded. Cleanup done: Codespac
 For review at close: the Verification asymmetry. Only plcc-ng runs the full checklist on three hosts; CR-1028-CR-1030 run a smoke test, which checks a direct push to main but skips the other must-fail items (gh-pages, tags, workflow pushes, gh workflow run). Those rest on each repo's rulesets and token scope from CR-1023-CR-1026. Check whether those CRs proved each limit per repo; if not, add the missing must-fail items to the smoke test or to those CRs.
 
 2026-10-27: from reviewing what the public spec reveals. (1) Done: the spec no longer names the maintainer who bypasses course-materials-ng's main ruleset (dev commit a1172ae on cr-1021-push-from-container); CR-1023's and CR-1025's notes still name them, and the ruleset's bypass list is public through the rules API anyway, so left as is. (2) High priority at close: the Codespaces packages: write gap is specific, open, and documented publicly, and it reaches people who pull plcc-ng-devcontainer's images; fold it into CR-1030 with a criterion, rather than leave it as a note. (3) With the maintainer's approval, filed a draft for a security policy with private vulnerability reporting.
+
+2026-10-27, for the maintainer's own migration (Part C): this old plcc-ng container's dev clone uses SSH remotes (git@github.com:ourPLCC/dev.git), and a fetch succeeded earlier today, so the host's SSH agent held a GitHub key and the container could reach it. That is exactly what the new CONTRIBUTING rule forbids. At migration: switch host clones to HTTPS with Git Credential Manager, and unload the GitHub key from the host agent.
 <!-- SECTION:NOTES:END -->
