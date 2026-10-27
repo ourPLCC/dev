@@ -1,9 +1,11 @@
 ---
 id: CR-1025
 title: Apply GitHub-side protections for container push access
-status: To Do
-assignee: []
+status: Done
+assignee:
+  - '@StoneyJackson'
 created_date: '2026-10-13 13:54'
+updated_date: '2026-10-13 20:33'
 labels: []
 dependencies: []
 references:
@@ -21,7 +23,33 @@ Devcontainers in ourPLCC are getting push access through a fine-grained token sc
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Rulesets: main requires a pull request and blocks force-push and deletion; gh-pages and all tags block every push; the release App is the only bypass actor
-- [ ] #2 deploy.yml and release.yml push gh-pages with a release App's token in a release environment limited to main
-- [ ] #3 A deploy run after the change publishes the dev docs
+- [x] #1 Rulesets: main requires a pull request and blocks force-push and deletion; gh-pages and all tags block every push; the release App is the only bypass actor
+- [x] #2 deploy.yml and release.yml push gh-pages with a release App's token in a release environment limited to main
+- [x] #3 A deploy run after the change publishes the dev docs
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+2026-10-13: the ourPLCC Release Bot App's installation now covers this repo (installation: plcc-ng, plcc-ng-devcontainer, languages-ng, course-materials-ng). Its private key for this repo must go only into a release environment, never repository secrets: any of the App's keys mints tokens for every repo in the installation.
+
+AC 2 and 3 evidence (2026-10-13): PR #68 (merge d56ab3d) runs deploy.yml and release.yml in the release environment (limited to main; RELEASE_APP_ID and RELEASE_APP_PRIVATE_KEY as environment secrets), mints the release App's token, and checks out with it, so mike's --push goes out as the App; permissions drop to contents: read. Deploy run 38461443178 failed on attempt 1 because the ID secret was saved as APP_ID; after it was re-added as RELEASE_APP_ID, attempt 2 succeeded and pushed gh-pages ('Deployed d56ab3d to dev'). release.yml's edition path is not exercised until the next edition is cut. Remaining: rulesets (AC 1).
+
+Found while here: checks.yml's External links job (lychee) fails on PR #68 because some linked sites block bots. Unrelated to this CR. Triage at close.
+
+Deviation (2026-10-13, maintainer's decision): Alain (alainkaegi) pushes to main directly, and that workflow stays. So ruleset 17903860 'default branch', now active on main (deletion, non_fast_forward, pull_request with 0 approvals, Strict build status check), has two bypass actors: the ourPLCC Release Bot and alainkaegi, both Always allow. Everyone else, including agents holding other contributors' tokens, must use a PR. Why main still needs protecting here: deploy.yml runs on push to main in the release environment and mints the release App's token, which reaches every repo in the App's installation; an open main would let any token holder run code with it. Residual risk: Alain's own token. The permissions spec says the release Apps are the only bypass actors; it needs a sentence recording this exception. Remaining for AC 1: the gh-pages and tag rulesets.
+
+Update (2026-10-13): the maintainer removed the Strict build required status check from ruleset 17903860; main's rules are now deletion, non_fast_forward, and pull_request (0 approvals).
+
+AC 1 evidence (2026-10-13, public rules API): ruleset 17903860 'default branch' on main applies deletion, non_fast_forward, pull_request (0 approvals), bypass: the ourPLCC Release Bot and alainkaegi; ruleset 25029552 'gh-pages' applies creation, update, deletion, non_fast_forward; ruleset 25029597 'tags' (all tags) applies creation, update, deletion, non_fast_forward; gh-pages and tags have only the Release Bot as bypass. All active.
+
+Triage (2026-10-13): the External links failure is filed as a draft. The Alain bypass is recorded in the permissions spec on dev branch cr-1025-course-materials-bypass (0fc4e7b); close this CR once that merges.
+
+The Alain bypass is recorded in the permissions spec: dev PR #17 (merge 5301844).
+<!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+course-materials-ng now pushes gh-pages only with the ourPLCC Release Bot's token: deploy.yml and release.yml run in a release environment limited to main, mint the App's token there, and drop GITHUB_TOKEN to contents: read (PR #68). Rulesets: main requires a pull request and blocks force-push and deletion; gh-pages and all tags block every push. The Release Bot bypasses all three, and on main so does the maintainer, Alain Kägi, who keeps pushing to main directly; the permissions spec records that exception (dev PR #17). The first post-merge deploy failed on a misnamed secret (APP_ID) and passed after it was re-added as RELEASE_APP_ID. The External links check failing on sites that block bots is filed as a draft.
+<!-- SECTION:FINAL_SUMMARY:END -->

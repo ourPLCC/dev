@@ -246,6 +246,11 @@ resolve), and open entries `"as": "wontdo"` with a `summary`; its rules are in
 [its migration spec](specs/2026-10-11-languages-ng-migration-design.md). Tools
 that call `backlog` set `BACKLOG_CWD` to their target explicitly.
 
+`python3 -m migrate.split_links --tracker PATH --dev PATH [--check]` rewrote
+the references that pointed into `dev` when the tracker data moved to
+`change-requests`, per
+[its spec](specs/2026-10-13-change-requests-split-design.md).
+
 ## Working on the tracker tooling
 
 `bin/check.py` and `migrate/` use only the Python 3 standard library, so the
