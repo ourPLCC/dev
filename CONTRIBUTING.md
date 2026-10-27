@@ -96,7 +96,8 @@ anywhere you can.
 From the container you can push branches, open and update pull requests, and
 push tracker changes with `/workspaces/dev/bin/push.bash`. You cannot push to
 any repo's `main` except `change-requests`', to `gh-pages`, or tags; push a
-change to `.github/workflows/`; run or re-run workflows; or change settings,
+change to `.github/workflows/` (except from a Codespace; see below); run or
+re-run workflows; or change settings,
 rulesets, environments, or secrets. Do those in GitHub's web UI, or on the
 host with your own credentials.
 
@@ -116,6 +117,12 @@ you create one, GitHub asks you to authorize access to `ourPLCC/dev` and
 `ourPLCC/change-requests`: authorize it, or both stay read-only and
 `bin/push.bash` fails. A full rebuild of a Codespace deletes its volumes and
 any tracker commits you have not pushed, so push right away.
+
+If you use an agent regularly, use it in a local container, not a Codespace.
+A Codespace's token can push changes to `.github/workflows/`, which your own
+token cannot, so an agent misled by text it reads could push a workflow that
+runs with write access to the repo. An agent for a one-off task in a Codespace
+is fine; watch what it pushes.
 
 A Codespace's token expires about 12 hours after the Codespace starts. If a
 push or `gh` command then fails to authenticate, restart the Codespace.
