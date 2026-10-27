@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:53'
-updated_date: '2026-10-27 17:43'
+updated_date: '2026-10-27 17:44'
 labels: []
 dependencies: []
 references:
@@ -47,4 +47,6 @@ Folded in from CR-1023's triage (2026-10-13): dev's .github/workflows/check.yml 
 Correction: CR-1007 is not fixed yet. It is in backlog/completed/, and the backlog CLI cannot edit completed CRs (task edit says 'Task not found'). Options: the maintainer edits that one line by hand, or split_links rewrites ourPLCC/change-requests#N to ourPLCC/dev#N during cutover step 3.
 
 CR-1007 fixed by the maintainer by hand (dev commit e4084d4); its final summary now references ourPLCC/dev#1. No other short reference to the old name remains in backlog/.
+
+2026-10-27: split spec amendment for short references committed on dev branch cr-1022-old-short-references (93fe173, from origin/main), unpushed; needs a PR against main before the cutover.
 <!-- SECTION:NOTES:END -->
