@@ -157,11 +157,17 @@ Set by an org owner, before any container gets push access.
   an org owner approves each one. Maximum lifetime: 90 days.
 - Classic personal access tokens are blocked for the org, so a classic token
   pasted into `gh` cannot reach ourPLCC.
-- OAuth app access is left as it is. Restricting it would also cut off the
-  host's own Git Credential Manager, which the host needs for the work the
-  container cannot do. The cost: a `gh auth login` taken through the browser
-  default yields an unscoped token. The `--with-token`-only instruction, the
-  deny rules, and Verification step 9 stand in for that restriction.
+- Third-party (OAuth) application access is **restricted**, as it already
+  was on 2026-10-27: only approved apps reach ourPLCC's data beyond what is
+  public. Git Credential Manager is approved, so a host pushes over HTTPS
+  with GCM's browser sign-in for the work the container cannot do; an org
+  owner grants it the first time they sign in with it. No other app is
+  approved for pushing, the GitHub CLI's included, so a `gh auth login`
+  taken through the browser default yields a token that cannot push to
+  ourPLCC. The `--with-token`-only instruction, the deny rules, and
+  Verification step 9 remain as a backstop. A token another app left in a
+  host's keychain (VS Code's, an old GCM's) fails the same way, and the
+  contributor erases it and signs in with GCM again.
 
 ### Workflows
 
@@ -548,6 +554,10 @@ describes the volumes in place of the `../dev` clone, and drops plcc-ng's
    (`git rm -r --cached -q . && git reset --hard`) or clone it fresh.
 5. Delete the host's `../dev`. Do not check out a pre-migration branch of any
    repo afterwards, or its devcontainer recreates it.
+6. On the host, push over HTTPS through Git Credential Manager, erasing any
+   token another app stored (see "Tokens"). Switch SSH remotes to HTTPS and
+   remove any GitHub key from the host's SSH agent (see "Every
+   devcontainer").
 
 ## Verification
 
@@ -628,7 +638,7 @@ Codespace; the sections above already reflect each result.
 | Token in a host environment variable via `${localEnv:…}` | VS Code launched from a GUI often does not see the shell's environment, and the setup differs on every host OS |
 | `gh auth setup-git` | Writes `~/.gitconfig`, which VS Code replaces with the host's copy |
 | Token with the Workflows permission | A workflow on a pushed branch runs before review; workflow edits are rare enough to do outside the container |
-| Restrict OAuth app access for the org | Also blocks the host's Git Credential Manager, which the host needs for what the container cannot do |
+| Lift the org's restriction on OAuth app access | Any app a contributor authorizes, the GitHub CLI's browser login included, would reach ourPLCC with an unscoped token; approving Git Credential Manager alone gives hosts what they need |
 | Keep tracker data in `dev`, restricting direct pushes to `backlog/` with a push ruleset | Push rulesets are not available to ourPLCC |
 | Keep tracker data in `dev`, open to direct pushes, guarded by `bin/push.bash` | A rule an injected agent can skip, on the path that sets every agent's instructions and every container's hooks |
 | Tracker data on an orphan branch of `dev`, checked out as a worktree | Same protection as a separate repo, but orphan branches and worktrees are unfamiliar to new contributors, and GitHub shows `main` by default |

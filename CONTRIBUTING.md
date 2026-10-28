@@ -148,3 +148,11 @@ beside the code repos, and tracker changes were pushed from there. Move once:
    or clone it fresh.
 5. Delete the host's `../dev`. Do not check out a branch of any repo from
    before the move, or its devcontainer recreates `../dev`.
+6. On the host, push over HTTPS with Git Credential Manager. It comes with
+   Git for Windows; on macOS, `brew install --cask git-credential-manager`.
+   ourPLCC admits only approved apps, and GCM is the one approved for
+   pushing, so a token another app stored fails with a 403. Erase it with
+   `printf 'protocol=https\nhost=github.com\n\n' | git credential reject`,
+   then push again and sign in through the browser. If your host clones use
+   SSH remotes, switch them to HTTPS and remove your GitHub key from the SSH
+   agent (`ssh-add -d <key>`).
