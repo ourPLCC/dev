@@ -89,7 +89,7 @@ permission rules, the spec says so.
 ## What a container may do
 
 The same in a local container and in a Codespace, except where "Codespaces"
-below narrows it.
+below narrows or widens it.
 
 | Operation | Human | Agent | Enforced by |
 | --- | --- | --- | --- |
@@ -98,11 +98,12 @@ below narrows it.
 | Force-push or delete `change-requests`' `main` | no | no | branch ruleset |
 | Push to any other repo's `main` (`dev` included), or to `gh-pages` | no | no | branch rulesets |
 | Push, move, or delete a tag | no | no | tag rulesets |
+| Create, edit, or delete a draft release | yes | yes | — (publishing one creates its tag, which the tag rulesets block) |
 | Open, update, comment on, or close a PR | yes | yes | — |
 | Merge a PR | yes | **no** | ORG-AGENTS.md and Claude Code deny rules only |
 | Publish a package | no | no | `pypi` environment's required reviewer |
 | Run code in CI by pushing a branch or opening a PR | yes | yes | — (CI tokens are read-only; see "Workflows") |
-| Push a change to `.github/workflows/` | no | no | token lacks Workflows |
+| Push a change to `.github/workflows/` | no (yes in a Codespace) | no (yes in a Codespace) | token lacks Workflows; see "Codespaces" |
 | Dispatch or re-run workflows; change settings, rulesets, environments, or secrets | no | no | token lacks Actions, Administration, Environments, Secrets |
 | Anything in a repo outside ourPLCC | no | no | token's resource owner |
 | Log `gh` in with another credential | no | no | ORG-AGENTS.md and Claude Code deny rules only |
@@ -156,11 +157,17 @@ Set by an org owner, before any container gets push access.
   an org owner approves each one. Maximum lifetime: 90 days.
 - Classic personal access tokens are blocked for the org, so a classic token
   pasted into `gh` cannot reach ourPLCC.
-- OAuth app access is left as it is. Restricting it would also cut off the
-  host's own Git Credential Manager, which the host needs for the work the
-  container cannot do. The cost: a `gh auth login` taken through the browser
-  default yields an unscoped token. The `--with-token`-only instruction, the
-  deny rules, and Verification step 9 stand in for that restriction.
+- Third-party (OAuth) application access is **restricted**, as it already
+  was on 2026-10-27: only approved apps reach ourPLCC's data beyond what is
+  public. Git Credential Manager is approved, so a host pushes over HTTPS
+  with GCM's browser sign-in for the work the container cannot do; an org
+  owner grants it the first time they sign in with it. No other app is
+  approved for pushing, the GitHub CLI's included, so a `gh auth login`
+  taken through the browser default yields a token that cannot push to
+  ourPLCC. The `--with-token`-only instruction, the deny rules, and
+  Verification step 9 remain as a backstop. A token another app left in a
+  host's keychain (VS Code's, an old GCM's) fails the same way, and the
+  contributor erases it and signs in with GCM again.
 
 ### Workflows
 
@@ -189,11 +196,11 @@ Per repo: org rulesets need GitHub Team, which ourPLCC does not have.
 "Apply the rulesets" is therefore a step in creating any ourPLCC repo. The
 release Apps are the only bypass actors; nobody else bypasses, org owners
 included, with one exception: course-materials-ng's `main` also lets its
-maintainer Alain Kägi (`alainkaegi`) bypass, because he maintains it by
-pushing to `main` directly. Its `main` still needs the ruleset for everyone
-else: `deploy.yml` runs on every push to `main` with the release App's token,
-which reaches every repo in the App's installation. The remaining risk is
-that one contributor's token.
+maintainer bypass, because they maintain it by pushing to `main` directly.
+Its `main` still needs the ruleset for everyone else: `deploy.yml` runs on
+every push to `main` with the release App's token, which reaches every repo
+in the App's installation. The remaining risk is that one contributor's
+token.
 
 - **`main`**, every repo except `change-requests` (`dev` included): require a
   pull request, block force-pushes, block deletion.
@@ -273,9 +280,21 @@ Codespaces GPG verification for ourPLCC repos, and are unsigned otherwise.
   `"git.terminalAuthentication": false` and `"github.gitAuthentication": false`
   in `customizations.vscode.settings`. A push with no token fails instead of
   borrowing an unscoped one.
-- Does not expose the host's SSH agent: SSH remotes would push with the host's
-  keys, unscoped. The likely mechanism is `"remoteEnv": {"SSH_AUTH_SOCK": ""}`;
-  see "Open checks".
+- Hides the host's SSH agent, which SSH remotes would push through with the
+  host's keys, unscoped. VS Code forwards the agent into every container as
+  `/tmp/vscode-ssh-auth-<uuid>.sock`, recreates the socket on every window
+  reload, and has no setting that turns this off. So the devcontainer sets
+  `"remoteEnv": {"SSH_AUTH_SOCK": ""}`, which stops `git` and `ssh` finding
+  the agent by default, and
+  `"postAttachCommand": "rm -f /tmp/vscode-ssh-auth-*.sock"`, which removes
+  the socket after each attach. That leaves the socket reachable while
+  `postStartCommand` runs, on every start (Dev Containers runs
+  `postAttachCommand` only after it), in the moment between an attach and
+  the removal, and to a process that survives a window reload. Hiding the
+  agent is therefore not the boundary. The rule is: keep no SSH key that
+  GitHub accepts loaded in the host's agent, and use HTTPS with Git
+  Credential Manager on the host. That rests on the contributor, and
+  `CONTRIBUTING.md` says so.
 - Uses one `remoteUser`, `vscode`, with UID 1000, like every other ourPLCC
   devcontainer, because the shared volumes keep real UIDs.
 
@@ -309,9 +328,34 @@ same token.
   (for branches and PRs to `dev`); the Codespace's own repo is granted by
   default. GitHub asks for this grant when the Codespace is created. Choosing
   to continue without it leaves both read-only, so the docs say to authorize
-  it. A change to the grant reaches only Codespaces created afterwards.
+  it. A change to the grant reaches only Codespaces created afterwards. The
+  grant names a repo that must exist: before the split, GitHub lists
+  `ourPLCC/change-requests` as not available, and does not follow its
+  redirect to `dev`.
+- The token is fixed in each process's environment when the process starts,
+  and it expires about 12 hours after the Codespace starts; a restart issues
+  a new one. Codespaces' own credential helper reads the same environment
+  variable, so a stock Codespace behaves the same way, and deferring to it
+  would gain nothing. So once a Codespace has run about 12 hours, pushes and
+  `gh` may fail to authenticate until it restarts. Whether a new terminal
+  gets a fresh token sooner is untested. A Codespace stops after its idle
+  timeout, and a stop ends every process, so this takes a Codespace kept
+  active that long.
 - So in a Codespace the scope is that repo plus `dev` and `change-requests`,
-  narrower than local. The table above still holds within that scope.
+  narrower than local. The table above holds within that scope, with one
+  exception: the Codespace's token can push a change to `.github/workflows/`
+  in its own repo, and no setting narrows it. The org's read-only
+  `GITHUB_TOKEN` is only a default, which a workflow's own `permissions:`
+  block can raise, so a workflow pushed on a branch can run with write access
+  to that repo. That reaches its unprotected branches, issues, and PRs, which
+  the token reaches anyway; its packages, which matters where people pull
+  them, as with plcc-ng-devcontainer's images; and `actions: write`, which can
+  start workflows on `main`, running reviewed code with the `release`
+  environment's secrets. The rulesets, the `release` environment's refusal of
+  other branches, and the `pypi` reviewer still hold. This is accepted, and
+  limited by advice rather than enforcement: `CONTRIBUTING.md` says to run
+  agents regularly in a local container, and to use one in a Codespace only
+  for a one-off task, watched.
 
 ## Where the shared clones live
 
@@ -510,12 +554,20 @@ describes the volumes in place of the `../dev` clone, and drops plcc-ng's
    (`git rm -r --cached -q . && git reset --hard`) or clone it fresh.
 5. Delete the host's `../dev`. Do not check out a pre-migration branch of any
    repo afterwards, or its devcontainer recreates it.
+6. On the host, push over HTTPS through Git Credential Manager, erasing any
+   token another app stored (see "Tokens"). Switch SSH remotes to HTTPS and
+   remove any GitHub key from the host's SSH agent (see "Every
+   devcontainer").
 
 ## Verification
 
-Each code repo's CR passes this checklist in a local container on a Linux or
-macOS host, in a local container on a Windows host, and in a newly created
-Codespace.
+The first repo to adopt the shared setup, plcc-ng, passes this checklist in a
+local container on a Linux or macOS host, in a local container on a Windows
+host, and in a newly created Codespace. The other repos' devcontainer changes
+copy plcc-ng's, so each of their CRs instead passes a smoke test in a rebuilt
+local container: push a branch and open a PR with `gh`, list CRs with
+`backlog task list`, push a tracker change with `bin/push.bash`, and see a
+direct push to `main` rejected.
 
 Must succeed:
 
@@ -530,7 +582,8 @@ Must fail:
 4. A direct push to the repo's `main`, to `dev`'s `main`, and to `gh-pages`
    if the repo has one.
 5. A force-push to `change-requests`' `main`.
-6. A push of a commit touching `.github/workflows/`.
+6. A push of a commit touching `.github/workflows/`, locally. In a Codespace
+   it succeeds; see "Codespaces".
 7. Pushing any tag; `gh release create` for a new tag.
 8. `gh workflow run` on any workflow.
 
@@ -547,17 +600,22 @@ Must hold:
 
 ## Open checks
 
-Settled during step 1 of "Rollout" or the first repo's CR. A result that
-contradicts this spec is fixed here, before the spec is frozen.
+All settled on plcc-ng's branch before the split, on a macOS host and in a
+Codespace; the sections above already reflect each result.
 
-- `remoteEnv` with an empty `SSH_AUTH_SOCK` stops git and `ssh` from reaching
-  the forwarded agent; if not, another way to stop VS Code forwarding it.
-- The Codespace token cannot push workflow changes, create releases, or push
-  `gh-pages`. If it can, the table records the difference for Codespaces.
-- A long-running process in a Codespace keeps working after the Codespace's
-  `GITHUB_TOKEN` is refreshed. If not, the helper becomes a small script that
-  defers to Codespaces' own helper when `$CODESPACES` is set.
-- Codespaces honors `type=volume` mounts under `/workspaces`.
+- An empty `SSH_AUTH_SOCK` hides the forwarded agent but does not block it:
+  the socket stays in `/tmp`, and pointing `ssh-add` at it reaches the host.
+  Removing the socket in `postAttachCommand` closes that path except for the
+  gaps "Every devcontainer" lists, so the boundary is the rule about the
+  host's agent.
+- The Codespace token can push a change to `.github/workflows/` and create a
+  draft release; it cannot push a tag or push `gh-pages`, which the rulesets
+  reject. Publishing a release was not tried; Verification step 7 covers it.
+- A process in a Codespace keeps the token it started with, which expires
+  about 12 hours after the Codespace starts. Codespaces' own helper reads the
+  same variable, so the planned fallback to it is dropped.
+- Codespaces honors `type=volume` mounts under `/workspaces`, and they
+  survive a restart.
 - `flock /workspaces/dev` in one local container blocks it in another
   container that mounts the same volume.
 
@@ -580,7 +638,7 @@ contradicts this spec is fixed here, before the spec is frozen.
 | Token in a host environment variable via `${localEnv:…}` | VS Code launched from a GUI often does not see the shell's environment, and the setup differs on every host OS |
 | `gh auth setup-git` | Writes `~/.gitconfig`, which VS Code replaces with the host's copy |
 | Token with the Workflows permission | A workflow on a pushed branch runs before review; workflow edits are rare enough to do outside the container |
-| Restrict OAuth app access for the org | Also blocks the host's Git Credential Manager, which the host needs for what the container cannot do |
+| Lift the org's restriction on OAuth app access | Any app a contributor authorizes, the GitHub CLI's browser login included, would reach ourPLCC with an unscoped token; approving Git Credential Manager alone gives hosts what they need |
 | Keep tracker data in `dev`, restricting direct pushes to `backlog/` with a push ruleset | Push rulesets are not available to ourPLCC |
 | Keep tracker data in `dev`, open to direct pushes, guarded by `bin/push.bash` | A rule an injected agent can skip, on the path that sets every agent's instructions and every container's hooks |
 | Tracker data on an orphan branch of `dev`, checked out as a worktree | Same protection as a separate repo, but orphan branches and worktrees are unfamiliar to new contributors, and GitHub shows `main` by default |

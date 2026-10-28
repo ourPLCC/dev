@@ -142,6 +142,47 @@ class CheckTest(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("check: ", result.stderr)
 
+    def test_cli_requires_root(self):
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "bin" / "check.py")],
+            capture_output=True, text=True)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("--root", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+
+    def test_root_without_tracker_is_a_clear_error(self):
+        empty = self.root / "not-a-tracker"
+        empty.mkdir()
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "bin" / "check.py"), "--root", str(empty)],
+            capture_output=True, text=True)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("no backlog/config.yml", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+
+    def hook(self, name):
+        git = ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-C", str(self.root)]
+        subprocess.run(git + ["init", "-q"], check=True)
+        subprocess.run(git + ["add", "-A"], check=True)
+        subprocess.run(git + ["commit", "-q", "-m", "x"], check=True)
+        return subprocess.run(["sh", str(ROOT / ".githooks" / name)],
+                              cwd=self.root, capture_output=True, text=True)
+
+    def test_pre_commit_hook_checks_the_repo_that_runs_it(self):
+        self.add("tasks", "cr-1000 - A.md", record("CR-1000", project="nope"))
+        result = self.hook("pre-commit")
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("project", result.stderr)
+
+    def test_pre_push_hook_checks_the_repo_that_runs_it(self):
+        result = self.hook("pre-push")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.add("tasks", "cr-1000 - A.md", record("CR-1000"))
+        result = subprocess.run(["sh", str(ROOT / ".githooks" / "pre-push")],
+                                cwd=self.root, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("uncommitted change under backlog/", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
