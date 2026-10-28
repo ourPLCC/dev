@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@stoney'
 created_date: '2026-10-13 13:54'
-updated_date: '2026-10-27 17:53'
+updated_date: '2026-10-28 19:32'
 labels: []
 dependencies:
   - CR-1021
@@ -94,4 +94,6 @@ For review at close: the Verification asymmetry. Only plcc-ng runs the full chec
 2026-10-27: the maintainer switched host clones to SSH because pushing over HTTPS failed. Likely cause, unconfirmed: the host's HTTPS credential is a classic PAT (osxkeychain), which CR-1023 blocked for the org. At migration: check git config --show-origin --get-all credential.helper on the host, install Git Credential Manager if missing, sign in through its browser flow (OAuth apps stay allowed), switch remotes back to HTTPS, then unload the GitHub key from the host agent. The permissions spec assumes the host has a working GCM; if this proves hard, CONTRIBUTING's migration steps need a host-HTTPS step.
 
 2026-10-27: why HTTPS push failed on the maintainer's host: the keychain holds an OAuth token (gho_), and ourPLCC's third-party application access policy is 'Access restricted' (only Docker Hub Builder and Gitpod approved). The permissions spec wrongly says OAuth app access is 'left as it is' so the host's GCM works; in fact GCM is cut off for every host, and the restriction also blocks gh's browser-login token, which the spec relied on deny rules for. Plan (maintainer agrees in principle, deferred until after the cutover so host pushes keep working over SSH): keep the restriction; approve only Git Credential Manager (install GCM, erase the osxkeychain github.com entry, sign in with a dry-run push, Grant ourPLCC on the authorize page); then switch host remotes to HTTPS and unload the SSH key. Spec PR (agent drafts): fix the Tokens bullet and the 'Restrict OAuth app access' alternative row, and add the GCM step to dev CONTRIBUTING's migration.
+
+2026-10-28: OAuth correction pushed on dev PR #15 (fad78d0): spec 'Tokens' keeps OAuth app access restricted with GCM the only app approved for pushing; spec 'Migration' and dev CONTRIBUTING 'Moving from the host clone' gain step 6 (host pushes over HTTPS through GCM, erase stale tokens with git credential reject, SSH remotes to HTTPS, key out of the agent). The org owner still has to grant GCM, at the maintainer's own migration.
 <!-- SECTION:NOTES:END -->
